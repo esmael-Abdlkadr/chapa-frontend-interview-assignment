@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "../../hooks/useAuth";
+import { toastService } from "../../services/toastService";
 
 // Validation schema
 const loginSchema = z.object({
@@ -11,10 +12,6 @@ const loginSchema = z.object({
     .string()
     .min(1, "Email is required")
     .email("Please enter a valid email address"),
-  password: z
-    .string()
-    .min(6, "Password must be at least 6 characters")
-    .max(50, "Password is too long"),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -45,10 +42,20 @@ const Login: React.FC = () => {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
+      const loadingToast = toastService.loading("Signing in...");
+
       await login(data.email, data.password);
+
+      // Dismiss the loading toast
+      toastService.dismiss(loadingToast);
+
+      // Show success toast
+      toastService.success("Successfully signed in!");
     } catch (error) {
       if (error instanceof Error) {
         setError("root", { message: error.message });
+        // Show error toast
+        toastService.error(error.message);
       }
     }
   };

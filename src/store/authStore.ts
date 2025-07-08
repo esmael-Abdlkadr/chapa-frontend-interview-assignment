@@ -6,12 +6,12 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
-  role: "user" | "admin" | "superadmin"; // Changed to lowercase
+  role: "user" | "admin" | "superadmin";
   avatar?: string;
   createdAt: string;
   lastLogin?: string;
   isActive: boolean;
-  createdBy?: string; // ID of the user who created this user
+  createdBy?: string;
 }
 
 interface AuthState {
@@ -39,43 +39,41 @@ interface AuthState {
   setLoading: (loading: boolean) => void;
 }
 
-// Mock users - Only SuperAdmin is pre-seeded
 const mockUsers: User[] = [
   {
     id: "super-admin-001",
     email: "superadmin@chapa.co",
     firstName: "Abebe",
     lastName: "Tadesse",
-    role: "superadmin", // Changed to lowercase
+    role: "superadmin",
     avatar: "👨‍💻",
     createdAt: "2024-01-01T00:00:00Z",
     lastLogin: "2024-12-20T16:45:00Z",
     isActive: true,
-    // SuperAdmin has no createdBy - system generated
   },
-  // Demo Admin created by SuperAdmin (for testing purposes)
+
   {
     id: "admin-001",
     email: "admin@chapa.co",
     firstName: "Almaz",
     lastName: "Kebede",
-    role: "admin", // Changed to lowercase
+    role: "admin",
     avatar: "👩‍💼",
     createdAt: "2024-01-10T08:00:00Z",
     lastLogin: "2024-12-20T09:15:00Z",
     isActive: true,
     createdBy: "super-admin-001",
   },
-  // Demo User for testing
+
   {
     id: "user-001",
     email: "user@chapa.co",
     firstName: "Dawit",
     lastName: "Haile",
-    role: "user", // Changed to lowercase
+    role: "user",
     avatar: "👤",
-    createdAt: "2024-01-15T10:00:00Z",
-    lastLogin: "2024-12-20T14:30:00Z",
+    createdAt: "2025-01-15T10:00:00Z",
+    lastLogin: "2025-12-20T14:30:00Z",
     isActive: true,
     createdBy: "admin-001",
   },
@@ -93,10 +91,8 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
 
         try {
-          // Simulate API call delay
           await new Promise((resolve) => setTimeout(resolve, 1000));
 
-          // Find user by email
           const user = mockUsers.find(
             (u) => u.email.toLowerCase() === email.toLowerCase()
           );
@@ -116,7 +112,6 @@ export const useAuthStore = create<AuthState>()(
             throw new Error("Password must be at least 6 characters");
           }
 
-          // Update last login
           const updatedUser = {
             ...user,
             lastLogin: new Date().toISOString(),
@@ -141,7 +136,6 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
 
         try {
-          // Only allow User registration through public registration
           if (userData.role !== "user") {
             throw new Error(
               "Only User accounts can be created through registration. Admin accounts must be created by SuperAdmin."

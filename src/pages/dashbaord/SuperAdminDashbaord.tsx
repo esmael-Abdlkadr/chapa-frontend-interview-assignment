@@ -53,7 +53,44 @@ const SuperAdminDashboard: React.FC = () => {
   const renderContent = () => {
     switch (activeTab) {
       case "overview":
-        return <SystemStat />;
+        return (
+          <>
+            {/* Quick Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <QuickStatCard
+                title="Total Users"
+                value="20"
+                change="+2 this week"
+                icon={Users}
+                color="blue"
+              />
+              <QuickStatCard
+                title="Active Admins"
+                value="6"
+                change="All active"
+                icon={Shield}
+                color="green"
+              />
+              <QuickStatCard
+                title="Total Transactions"
+                value="1,247"
+                change="+15% this month"
+                icon={CreditCard}
+                color="purple"
+              />
+              <QuickStatCard
+                title="System Uptime"
+                value="99.9%"
+                change="Last 30 days"
+                icon={Zap}
+                color="orange"
+              />
+            </div>
+            <div className="mt-6">
+              <SystemStat />
+            </div>
+          </>
+        );
       case "users":
         return <UserManagment />;
       case "admins":
@@ -69,76 +106,7 @@ const SuperAdminDashboard: React.FC = () => {
 
   return (
     <DashboardLayout activeTab={activeTab} onTabChange={setActiveTab}>
-      <div className="space-y-6">
-        {/* Super Admin Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                <Crown className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold">Super Admin Dashboard</h1>
-                <p className="text-purple-100">
-                  Welcome back, {user.firstName}! You have full system control.
-                </p>
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="flex items-center space-x-2 text-purple-100">
-                <Activity className="w-4 h-4" />
-                <span className="text-sm">System Status: All Green</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Quick Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <QuickStatCard
-            title="Total Users"
-            value="20"
-            change="+2 this week"
-            icon={Users}
-            color="blue"
-          />
-          <QuickStatCard
-            title="Active Admins"
-            value="6"
-            change="All active"
-            icon={Shield}
-            color="green"
-          />
-          <QuickStatCard
-            title="Total Transactions"
-            value="1,247"
-            change="+15% this month"
-            icon={CreditCard}
-            color="purple"
-          />
-          <QuickStatCard
-            title="System Uptime"
-            value="99.9%"
-            change="Last 30 days"
-            icon={Zap}
-            color="orange"
-          />
-        </div>
-
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Navigation Sidebar */}
-          <div className="lg:col-span-1">
-            <SuperAdminSidebar
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
-            />
-          </div>
-
-          {/* Content Area */}
-          <div className="lg:col-span-3">{renderContent()}</div>
-        </div>
-      </div>
+      {renderContent()}
     </DashboardLayout>
   );
 };
@@ -172,44 +140,6 @@ const QuickStatCard: React.FC<{
           <Icon className="w-6 h-6" />
         </div>
       </div>
-    </div>
-  );
-};
-
-// Super Admin Sidebar Component
-const SuperAdminSidebar: React.FC<{
-  activeTab: string;
-  onTabChange: (tab: string) => void;
-}> = ({ activeTab, onTabChange }) => {
-  const menuItems = [
-    { id: "overview", label: "System Overview", icon: BarChart3 },
-    { id: "users", label: "User Management", icon: Users },
-    { id: "admins", label: "Admin Management", icon: Shield },
-    { id: "analytics", label: "Analytics", icon: TrendingUp },
-    { id: "settings", label: "System Settings", icon: Settings },
-  ];
-
-  return (
-    <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">
-        Super Admin Tools
-      </h3>
-      <nav className="space-y-2">
-        {menuItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => onTabChange(item.id)}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-all ${
-              activeTab === item.id
-                ? "bg-purple-50 text-purple-600 border border-purple-200"
-                : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-            }`}
-          >
-            <item.icon className="w-5 h-5" />
-            <span className="font-medium">{item.label}</span>
-          </button>
-        ))}
-      </nav>
     </div>
   );
 };

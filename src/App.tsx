@@ -5,6 +5,7 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 import { useAuth } from "./hooks/useAuth";
 import LandingPage from "./pages/LandingPage";
 import Login from "./pages/auth/Login";
@@ -14,34 +15,11 @@ import AdminDashboard from "./pages/dashbaord/adminDashbaord";
 import SuperAdminDashboard from "./pages/dashbaord/SuperAdminDashbaord";
 import SendMoneyPage from "./pages/dashbaord/SendMoneyPage";
 import NotFoundPage from "./pages/NotFoundPage";
-
-// Role-based route protection component
-const ProtectedRoute: React.FC<{
-  children: React.ReactNode;
-  allowedRoles: string[];
-}> = ({ children, allowedRoles }) => {
-  const { isAuthenticated, user } = useAuth();
-
-  if (!isAuthenticated || !user) {
-    return <Navigate to="/auth/login" replace />;
-  }
-
-  if (!allowedRoles.includes(user.role)) {
-    // Redirect to appropriate dashboard based on role
-    switch (user.role) {
-      case "superadmin":
-        return <Navigate to="/super-admin" replace />;
-      case "admin":
-        return <Navigate to="/admin" replace />;
-      case "user":
-        return <Navigate to="/dashboard" replace />;
-      default:
-        return <Navigate to="/auth/login" replace />;
-    }
-  }
-
-  return <>{children}</>;
-};
+import AdminManagementPage from "./pages/dashbaord/AdminManagementPage";
+import TransactionsPage from "./pages/dashbaord/TransactionsPage";
+import TransactionDetailsPage from "./pages/dashbaord/TransactionDetailsPage";
+// Import the more comprehensive ProtectedRoute component
+import ProtectedRoute from "./components/common/ProtectedRoute";
 
 // Dashboard redirect component
 const DashboardRedirect: React.FC = () => {
@@ -68,64 +46,154 @@ function App() {
   const { isAuthenticated } = useAuth();
 
   return (
-    <Router>
-      <Routes>
-        {/* Public routes */}
-        <Route
-          path="/"
-          element={!isAuthenticated ? <LandingPage /> : <DashboardRedirect />}
-        />
-        <Route
-          path="/auth/login"
-          element={!isAuthenticated ? <Login /> : <DashboardRedirect />}
-        />
-        <Route
-          path="/auth/register"
-          element={!isAuthenticated ? <Register /> : <DashboardRedirect />}
-        />
+    <>
+      <Router>
+        <Routes>
+          {/* Public routes */}
+          <Route
+            path="/"
+            element={!isAuthenticated ? <LandingPage /> : <DashboardRedirect />}
+          />
+          <Route
+            path="/auth/login"
+            element={!isAuthenticated ? <Login /> : <DashboardRedirect />}
+          />
+          <Route
+            path="/auth/register"
+            element={!isAuthenticated ? <Register /> : <DashboardRedirect />}
+          />
 
-        {/* User Dashboard Routes */}
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute allowedRoles={["user"]}>
-              <UserDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/dashboard/send-money"
-          element={
-            <ProtectedRoute allowedRoles={["user"]}>
-              <SendMoneyPage />
-            </ProtectedRoute>
-          }
-        />
+          {/* User Dashboard Routes */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute requiredRoles={["user"]}>
+                <UserDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/send-money"
+            element={
+              <ProtectedRoute
+                requiredRoles={["user"]}
+                requiredPermissions={["make_payments"]}
+              >
+                <SendMoneyPage />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* Admin Dashboard Routes */}
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
+          {/* Admin Dashboard Routes */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute requiredRoles={["admin"]}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/manage-users"
+            element={
+              <ProtectedRoute
+                requiredRoles={["admin", "superadmin"]}
+                requiredPermissions={["view_users"]}
+              >
+                <AdminManagementPage />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* Super Admin Dashboard Routes */}
-        <Route
-          path="/super-admin"
-          element={
-            <ProtectedRoute allowedRoles={["superadmin"]}>
-              <SuperAdminDashboard />
-            </ProtectedRoute>
-          }
-        />
+          {/* Super Admin Dashboard Routes */}
+          <Route
+            path="/super-admin"
+            element={
+              <ProtectedRoute requiredRoles={["superadmin"]}>
+                <SuperAdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/super-admin/admins"
+            element={
+              <ProtectedRoute
+                requiredRoles={["superadmin"]}
+                requiredPermissions={["manage_admins"]}
+              >
+                <AdminManagementPage />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* Catch all - redirect to home */}
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
-    </Router>
+          {/* Transactions Routes - accessible by all authenticated users with appropriate permissions */}
+          <Route
+            path="/dashboard/transactions"
+            element={
+              <ProtectedRoute
+                requiredPermissions={[
+                  "view_transactions",
+                  "view_own_transactions",
+                ]}
+              >
+                <TransactionsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/transactions/:id"
+            element={
+              <ProtectedRoute
+                requiredPermissions={[
+                  "view_transactions",
+                  "view_own_transactions",
+                ]}
+              >
+                <TransactionDetailsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </Router>
+
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          // Default options
+          duration: 4000,
+          style: {
+            background: "#fff",
+            color: "#363636",
+            border: "1px solid #f0f0f0",
+            padding: "12px",
+            borderRadius: "8px",
+          },
+
+          success: {
+            style: {
+              border: "1px solid #ebf7ed",
+              background: "#f5fbf6",
+            },
+            iconTheme: {
+              primary: "#7DC400",
+              secondary: "#fff",
+            },
+          },
+          error: {
+            style: {
+              border: "1px solid #fbeaea",
+              background: "#fef5f5",
+            },
+            iconTheme: {
+              primary: "#e53e3e",
+              secondary: "#fff",
+            },
+          },
+        }}
+      />
+    </>
   );
 }
 

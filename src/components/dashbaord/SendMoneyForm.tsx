@@ -27,6 +27,7 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
+import { toastService } from "../../services/toastService";
 
 interface SendMoneyFormData {
   recipient: string;
@@ -126,6 +127,7 @@ const SendMoneyForm: React.FC = () => {
       newErrors.amount = "Amount must be greater than 0";
     } else if (formData.amount > balance) {
       newErrors.amount = "Insufficient balance";
+      toastService.error("Insufficient balance for this transaction");
     }
 
     setErrors(newErrors);
@@ -141,9 +143,30 @@ const SendMoneyForm: React.FC = () => {
   const processTransaction = async () => {
     setStep("processing");
     setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-    setIsLoading(false);
-    setStep("success");
+
+    // Show loading toast
+    const loadingId = toastService.loading("Processing your payment...");
+
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+
+      // Success
+      toastService.dismiss(loadingId);
+      toastService.success(
+        `Payment of ${formatCurrency(formData.amount)} sent successfully!`
+      );
+
+      setIsLoading(false);
+      setStep("success");
+    } catch (error) {
+      // Error
+      toastService.dismiss(loadingId);
+      toastService.error("Transaction failed. Please try again.");
+
+      setIsLoading(false);
+      setStep("form");
+    }
   };
 
   const formatCurrency = (amount: number) => {
@@ -159,6 +182,8 @@ const SendMoneyForm: React.FC = () => {
     setSelectedContact(contact);
     setShowContacts(false);
     setSearchTerm("");
+
+    toastService.info(`Selected ${contact.name} as recipient`);
   };
 
   const selectQuickAmount = (amount: number) => {
@@ -168,6 +193,8 @@ const SendMoneyForm: React.FC = () => {
   const selectRecentTransaction = (transaction: RecentTransaction) => {
     setFormData({ ...formData, recipient: transaction.recipient });
     setShowRecent(false);
+
+    toastService.info(`Using recent transaction with ${transaction.recipient}`);
   };
 
   const reset = () => {
@@ -175,10 +202,14 @@ const SendMoneyForm: React.FC = () => {
     setStep("form");
     setErrors({});
     setSelectedContact(null);
+
+    toastService.info("Ready to make another payment");
   };
 
   const copyTransactionId = () => {
-    navigator.clipboard.writeText(`TXN-${Date.now()}`);
+    const transactionId = `TXN-${Date.now()}`;
+    navigator.clipboard.writeText(transactionId);
+    toastService.success("Transaction ID copied to clipboard");
   };
 
   // Success Screen
