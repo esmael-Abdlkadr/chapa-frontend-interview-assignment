@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Wallet, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 
 interface SidebarProps {
   navigation: Array<{ name: string; icon: any; key: string; route?: string }>;
@@ -22,13 +22,8 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({
   navigation,
   secondaryNavigation,
-  activeTab,
-  onTabChange,
-  user,
   logout,
   brandColors,
-  roleIcon,
-  roleColor,
 }) => {
   const location = useLocation();
 
@@ -36,46 +31,14 @@ const Sidebar: React.FC<SidebarProps> = ({
     <div className="flex flex-col flex-1 min-h-0 bg-white border-r border-gray-200">
       {/* Logo */}
       <div className="flex items-center flex-shrink-0 px-4 py-4 border-b border-gray-200">
-        <div className="flex items-center space-x-3">
-          <div
-            className={`w-8 h-8 ${brandColors.primary} rounded-lg flex items-center justify-center`}
-          >
-            <Wallet className="w-5 h-5 text-white" />
+        <Link className="flex items-center space-x-3" to={"/"}>
+          <div className="flex items-center justify-center w-8 h-8 bg-green-100 rounded-full">
+            <img src="/logo.jpeg" className="w-6 h-6" alt="Logo" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Chapa</h1>
-            <p className="text-xs text-gray-500">Financial Technology</p>
+            <h1 className="text-xl font-bold text-green-400">Chapa</h1>
           </div>
-        </div>
-      </div>
-
-      {/* User info */}
-      <div className="px-4 py-4 border-b border-gray-200">
-        <div className="flex items-center space-x-3">
-          <div
-            className={`h-10 w-10 ${brandColors.primary} rounded-full flex items-center justify-center text-white font-semibold`}
-          >
-            {user.firstName.charAt(0)}
-            {user.lastName.charAt(0)}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center">
-              <p className="text-sm font-medium text-gray-900 truncate mr-2">
-                {user.firstName} {user.lastName}
-              </p>
-              <div
-                className={`px-1.5 py-0.5 rounded text-xs font-medium ${roleColor} text-white`}
-              >
-                {user.role === "superadmin"
-                  ? "Super"
-                  : user.role === "admin"
-                  ? "Admin"
-                  : "User"}
-              </div>
-            </div>
-            <p className="text-xs text-gray-500 truncate">{user.email}</p>
-          </div>
-        </div>
+        </Link>
       </div>
 
       {/* Navigation */}

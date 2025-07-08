@@ -1,11 +1,5 @@
 import { mockAPI } from "./mockAPi";
-import type { Transaction as BaseTransaction } from "./mockAPi";
-
-export interface Transaction extends Omit<BaseTransaction, "reference"> {
-  time?: string;
-  balance?: number;
-  reference?: string;
-}
+import type { Transaction } from "./mockAPi";
 
 export interface CreateTransactionData {
   type: "income" | "expense";
@@ -33,37 +27,102 @@ export interface TransactionFilters {
 }
 
 class TransactionService {
-  async getTransactions(filters?: TransactionFilters): Promise<Transaction[]> {
+  private getStorageKey(userId: string): string {
+    return `chapa_user_${userId}`;
+  }
+
+  private getUserFromStorage(userId: string) {
+    const userData = localStorage.getItem(this.getStorageKey(userId));
+    return userData ? JSON.parse(userData) : null;
+  }
+
+  private saveUserToStorage(user: any) {
+    localStorage.setItem(this.getStorageKey(user.id), JSON.stringify(user));
+
+    // Also update the main auth storage if this is the current user
+    const authData = localStorage.getItem("auth-storage");
+    if (authData) {
+      const parsedAuth = JSON.parse(authData);
+      if (parsedAuth.state?.user?.id === user.id) {
+        parsedAuth.state.user = user;
+        localStorage.setItem("auth-storage", JSON.stringify(parsedAuth));
+      }
+    }
+  }
+
+  // Get transactions from localStorage
+  private getStoredTransactions(userId: string): Transaction[] {
     try {
-      let transactions = await mockAPI.getTransactions();
-      let castedTransactions = transactions as unknown as Transaction[];
+      const stored = localStorage.getItem(this.getStorageKey(userId));
+      return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+      console.error("Error reading transactions from localStorage:", error);
+      return [];
+    }
+  }
+
+  // Save transactions to localStorage
+  private saveTransactions(transactions: Transaction[], userId: string): void {
+    try {
+      localStorage.setItem(
+        this.getStorageKey(userId),
+        JSON.stringify(transactions)
+      );
+    } catch (error) {
+      console.error("Error saving transactions to localStorage:", error);
+    }
+  }
+
+  // Get all transactions with optional filters (combines mock data + stored data)
+  async getTransactions(
+    filters?: TransactionFilters,
+    userId?: string
+  ): Promise<Transaction[]> {
+    try {
+      // Get mock transactions
+      const mockTransactions = await mockAPI.getTransactions();
+
+      // Get stored transactions
+      const storedTransactions = this.getStoredTransactions(userId!);
+
+      // Combine and sort by date (newest first)
+      let allTransactions = [...mockTransactions, ...storedTransactions].sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
 
       if (filters) {
-        castedTransactions = this.applyFilters(castedTransactions, filters);
+        allTransactions = this.applyFilters(allTransactions, filters);
       }
 
-      return castedTransactions;
+      return allTransactions;
     } catch (error) {
       console.error("Error fetching transactions:", error);
       throw new Error("Failed to fetch transactions");
     }
   }
 
-  async getTransactionById(id: string): Promise<Transaction | null> {
+  // Get a single transaction by ID
+  async getTransactionById(
+    id: string,
+    userId?: string
+  ): Promise<Transaction | null> {
     try {
-      const transactions = await mockAPI.getTransactions();
-      return transactions.find((t) => t.id === id) || null;
+      const allTransactions = await this.getTransactions(undefined, userId);
+      return allTransactions.find((t) => t.id === id) || null;
     } catch (error) {
       console.error("Error fetching transaction:", error);
       throw new Error("Failed to fetch transaction");
     }
   }
 
-  async createTransaction(data: CreateTransactionData): Promise<Transaction> {
+  // Create a new transaction and store it
+  async createTransaction(
+    data: CreateTransactionData,
+    userId?: string
+  ): Promise<Transaction> {
     try {
       const newTransaction: Transaction = {
         id: this.generateId(),
-        userId: "user-1", // Adding required userId field
         ...data,
         date: new Date().toISOString().split("T")[0],
         time: new Date().toLocaleTimeString("en-US", {
@@ -75,11 +134,15 @@ class TransactionService {
         balance: await this.calculateNewBalance(data.type, data.amount),
       };
 
+      // Get existing stored transactions
+      const storedTransactions = this.getStoredTransactions(userId!);
+      storedTransactions.unshift(newTransaction);
+
+      this.saveTransactions(storedTransactions, userId!);
+
       // Simulate API call delay
       await this.delay(500);
 
-      // In a real app, you would make an API call here
-      // For now, we'll just return the created transaction
       return newTransaction;
     } catch (error) {
       console.error("Error creating transaction:", error);
@@ -88,18 +151,27 @@ class TransactionService {
   }
 
   // Update an existing transaction
-  async updateTransaction(data: UpdateTransactionData): Promise<Transaction> {
+  async updateTransaction(
+    data: UpdateTransactionData,
+    userId?: string
+  ): Promise<Transaction> {
     try {
-      const existingTransaction = await this.getTransactionById(data.id);
+      const storedTransactions = this.getStoredTransactions(userId!);
+      const transactionIndex = storedTransactions.findIndex(
+        (t) => t.id === data.id
+      );
 
-      if (!existingTransaction) {
+      if (transactionIndex === -1) {
         throw new Error("Transaction not found");
       }
 
       const updatedTransaction: Transaction = {
-        ...existingTransaction,
+        ...storedTransactions[transactionIndex],
         ...data,
       };
+
+      storedTransactions[transactionIndex] = updatedTransaction;
+      this.saveTransactions(storedTransactions, userId!);
 
       // Simulate API call delay
       await this.delay(500);
@@ -112,18 +184,22 @@ class TransactionService {
   }
 
   // Delete a transaction
-  async deleteTransaction(id: string): Promise<boolean> {
+  async deleteTransaction(id: string, userId?: string): Promise<boolean> {
     try {
-      const transaction = await this.getTransactionById(id);
+      const storedTransactions = this.getStoredTransactions(userId!);
+      const filteredTransactions = storedTransactions.filter(
+        (t) => t.id !== id
+      );
 
-      if (!transaction) {
+      if (filteredTransactions.length === storedTransactions.length) {
         throw new Error("Transaction not found");
       }
+
+      this.saveTransactions(filteredTransactions, userId!);
 
       // Simulate API call delay
       await this.delay(500);
 
-      // In a real app, you would make an API call here
       return true;
     } catch (error) {
       console.error("Error deleting transaction:", error);
@@ -132,14 +208,14 @@ class TransactionService {
   }
 
   // Get transaction statistics
-  async getTransactionStats(): Promise<{
+  async getTransactionStats(userId?: string): Promise<{
     totalIncome: number;
     totalExpenses: number;
     totalTransactions: number;
     pendingTransactions: number;
   }> {
     try {
-      const transactions = await this.getTransactions();
+      const transactions = await this.getTransactions(undefined, userId);
 
       const stats = transactions.reduce(
         (acc, transaction) => {
@@ -168,6 +244,15 @@ class TransactionService {
     } catch (error) {
       console.error("Error getting transaction stats:", error);
       throw new Error("Failed to get transaction statistics");
+    }
+  }
+
+  // Clear all stored transactions (useful for testing)
+  clearStoredTransactions(): void {
+    try {
+      localStorage.clear();
+    } catch (error) {
+      console.error("Error clearing stored transactions:", error);
     }
   }
 

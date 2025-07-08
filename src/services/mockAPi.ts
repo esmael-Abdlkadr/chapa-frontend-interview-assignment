@@ -60,6 +60,31 @@ export interface SystemStats {
   totalRevenue: number;
   systemUptime: number;
   lastUpdated: string;
+  // Enhanced stats for competition features
+  monthlyGrowth: {
+    users: number;
+    revenue: number;
+    transactions: number;
+  };
+  transactionBreakdown: {
+    completed: number;
+    pending: number;
+    failed: number;
+  };
+  revenueBreakdown: {
+    fees: number;
+    commissions: number;
+    penalties: number;
+  };
+  systemHealth: {
+    database: "healthy" | "warning" | "error";
+    apiServer: "running" | "warning" | "error";
+    paymentGateway: "operational" | "warning" | "error";
+    security: "protected" | "warning" | "vulnerable";
+  };
+  activeSessionsCount: number;
+  averageTransactionValue: number;
+  topPerformingRegions: string[];
 }
 
 // JSON Mock Data
@@ -77,7 +102,7 @@ const mockUsersData: User[] = [
     walletBalance: 2500,
     totalTransactions: 15,
     isVerified: true,
-    avatar: ""
+    avatar: "",
   },
   {
     id: "user-2",
@@ -92,7 +117,7 @@ const mockUsersData: User[] = [
     walletBalance: 1800,
     totalTransactions: 8,
     isVerified: true,
-    avatar: ""
+    avatar: "",
   },
   {
     id: "user-3",
@@ -107,7 +132,7 @@ const mockUsersData: User[] = [
     walletBalance: 3200,
     totalTransactions: 22,
     isVerified: false,
-    avatar: ""
+    avatar: "",
   },
   {
     id: "user-4",
@@ -122,7 +147,7 @@ const mockUsersData: User[] = [
     walletBalance: 950,
     totalTransactions: 5,
     isVerified: true,
-    avatar: ""
+    avatar: "",
   },
   {
     id: "user-5",
@@ -137,7 +162,7 @@ const mockUsersData: User[] = [
     walletBalance: 4100,
     totalTransactions: 31,
     isVerified: true,
-    avatar: ""
+    avatar: "",
   },
   {
     id: "user-6",
@@ -152,7 +177,7 @@ const mockUsersData: User[] = [
     walletBalance: 2750,
     totalTransactions: 18,
     isVerified: true,
-    avatar: ""
+    avatar: "",
   },
   {
     id: "user-7",
@@ -167,7 +192,7 @@ const mockUsersData: User[] = [
     walletBalance: 1600,
     totalTransactions: 12,
     isVerified: false,
-    avatar: ""
+    avatar: "",
   },
   {
     id: "user-8",
@@ -182,8 +207,8 @@ const mockUsersData: User[] = [
     walletBalance: 3800,
     totalTransactions: 26,
     isVerified: true,
-    avatar: ""
-  }
+    avatar: "",
+  },
 ];
 
 const generateMockUsers = (): User[] => {
@@ -201,8 +226,12 @@ const mockAdminsData: Admin[] = [
     status: "active",
     createdAt: "2024-01-01T08:00:00Z",
     lastLogin: "2024-12-21T08:30:00Z",
-    permissions: ["user_management", "transaction_monitoring", "basic_analytics"],
-    avatar: ""
+    permissions: [
+      "user_management",
+      "transaction_monitoring",
+      "basic_analytics",
+    ],
+    avatar: "",
   },
   {
     id: "admin-2",
@@ -214,8 +243,12 @@ const mockAdminsData: Admin[] = [
     status: "active",
     createdAt: "2024-01-15T09:30:00Z",
     lastLogin: "2024-12-20T14:45:00Z",
-    permissions: ["user_management", "transaction_monitoring", "basic_analytics"],
-    avatar: ""
+    permissions: [
+      "user_management",
+      "transaction_monitoring",
+      "basic_analytics",
+    ],
+    avatar: "",
   },
   {
     id: "admin-3",
@@ -228,7 +261,7 @@ const mockAdminsData: Admin[] = [
     createdAt: "2024-01-01T00:00:00Z",
     lastLogin: "2024-12-21T10:00:00Z",
     permissions: ["all"],
-    avatar: ""
+    avatar: "",
   },
   {
     id: "admin-4",
@@ -240,8 +273,12 @@ const mockAdminsData: Admin[] = [
     status: "active",
     createdAt: "2024-02-10T11:20:00Z",
     lastLogin: "2024-12-19T16:30:00Z",
-    permissions: ["user_management", "transaction_monitoring", "basic_analytics"],
-    avatar: ""
+    permissions: [
+      "user_management",
+      "transaction_monitoring",
+      "basic_analytics",
+    ],
+    avatar: "",
   },
   {
     id: "admin-5",
@@ -253,9 +290,13 @@ const mockAdminsData: Admin[] = [
     status: "active",
     createdAt: "2024-03-05T13:15:00Z",
     lastLogin: "2024-12-20T12:20:00Z",
-    permissions: ["user_management", "transaction_monitoring", "basic_analytics"],
-    avatar: ""
-  }
+    permissions: [
+      "user_management",
+      "transaction_monitoring",
+      "basic_analytics",
+    ],
+    avatar: "",
+  },
 ];
 
 const generateMockAdmins = (): Admin[] => {
@@ -337,6 +378,76 @@ const setStorageData = <T>(key: string, data: T): void => {
   }
 };
 
+// Enhanced system stats calculation
+const calculateEnhancedStats = (): SystemStats => {
+  const users = getStorageData<User[]>(STORAGE_KEYS.USERS, []);
+  const admins = getStorageData<Admin[]>(STORAGE_KEYS.ADMINS, []);
+  const transactions = getStorageData<Transaction[]>(
+    STORAGE_KEYS.TRANSACTIONS,
+    []
+  );
+
+  const completedTransactions = transactions.filter(
+    (t) => t.status === "completed"
+  );
+  const pendingTransactions = transactions.filter(
+    (t) => t.status === "pending"
+  );
+  const failedTransactions = transactions.filter((t) => t.status === "failed");
+
+  const totalRevenue = completedTransactions.reduce(
+    (sum, t) => sum + t.amount,
+    0
+  );
+  const totalFees = completedTransactions.reduce((sum, t) => sum + t.fee, 0);
+
+  return {
+    totalUsers: users.length,
+    activeUsers: users.filter((u) => u.status === "active").length,
+    totalAdmins: admins.length,
+    activeAdmins: admins.filter((a) => a.status === "active").length,
+    totalTransactions: transactions.length,
+    totalRevenue,
+    systemUptime: 99.9,
+    lastUpdated: new Date().toISOString(),
+    monthlyGrowth: {
+      users: 12.5,
+      revenue: 18.3,
+      transactions: 25.7,
+    },
+    transactionBreakdown: {
+      completed: completedTransactions.length,
+      pending: pendingTransactions.length,
+      failed: failedTransactions.length,
+    },
+    revenueBreakdown: {
+      fees: totalFees,
+      commissions: totalRevenue * 0.025, // 2.5% commission
+      penalties: totalRevenue * 0.001, // 0.1% penalties
+    },
+    systemHealth: {
+      database: "healthy",
+      apiServer: "running",
+      paymentGateway: "operational",
+      security: "protected",
+    },
+    activeSessionsCount:
+      users.filter((u) => u.status === "active").length +
+      admins.filter((a) => a.status === "active").length,
+    averageTransactionValue:
+      completedTransactions.length > 0
+        ? totalRevenue / completedTransactions.length
+        : 0,
+    topPerformingRegions: [
+      "Addis Ababa",
+      "Dire Dawa",
+      "Hawassa",
+      "Bahir Dar",
+      "Mekelle",
+    ],
+  };
+};
+
 // Initialize data if not exists
 const initializeData = () => {
   if (!localStorage.getItem(STORAGE_KEYS.USERS)) {
@@ -352,24 +463,7 @@ const initializeData = () => {
   }
 
   if (!localStorage.getItem(STORAGE_KEYS.SYSTEM_STATS)) {
-    const users = getStorageData<User[]>(STORAGE_KEYS.USERS, []);
-    const admins = getStorageData<Admin[]>(STORAGE_KEYS.ADMINS, []);
-    const transactions = getStorageData<Transaction[]>(
-      STORAGE_KEYS.TRANSACTIONS,
-      []
-    );
-
-    const stats: SystemStats = {
-      totalUsers: users.length,
-      activeUsers: users.filter((u) => u.status === "active").length,
-      totalAdmins: admins.length,
-      activeAdmins: admins.filter((a) => a.status === "active").length,
-      totalTransactions: transactions.length,
-      totalRevenue: transactions.reduce((sum, t) => sum + t.amount, 0),
-      systemUptime: 99.9,
-      lastUpdated: new Date().toISOString(),
-    };
-
+    const stats = calculateEnhancedStats();
     setStorageData(STORAGE_KEYS.SYSTEM_STATS, stats);
   }
 };
@@ -406,7 +500,7 @@ export const mockAPI = {
     });
   },
 
-  // Admins
+  // Enhanced admin management
   getAdmins: (): Promise<Admin[]> => {
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -416,18 +510,32 @@ export const mockAPI = {
   },
 
   addAdmin: (admin: Omit<Admin, "id" | "createdAt">): Promise<Admin> => {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       setTimeout(() => {
-        const admins = getStorageData<Admin[]>(STORAGE_KEYS.ADMINS, []);
-        const newAdmin: Admin = {
-          ...admin,
-          id: `admin-${Date.now()}`,
-          createdAt: new Date().toISOString(),
-        };
+        try {
+          const admins = getStorageData<Admin[]>(STORAGE_KEYS.ADMINS, []);
 
-        admins.push(newAdmin);
-        setStorageData(STORAGE_KEYS.ADMINS, admins);
-        resolve(newAdmin);
+          // Check if email already exists
+          const existingAdmin = admins.find((a) => a.email === admin.email);
+          if (existingAdmin) {
+            reject(new Error("Admin with this email already exists"));
+            return;
+          }
+
+          const newAdmin: Admin = {
+            ...admin,
+            id: `admin-${Date.now()}-${Math.random()
+              .toString(36)
+              .substr(2, 9)}`,
+            createdAt: new Date().toISOString(),
+          };
+
+          admins.push(newAdmin);
+          setStorageData(STORAGE_KEYS.ADMINS, admins);
+          resolve(newAdmin);
+        } catch (error) {
+          reject(error);
+        }
       }, 500);
     });
   },
@@ -435,16 +543,27 @@ export const mockAPI = {
   removeAdmin: (id: string): Promise<void> => {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        const admins = getStorageData<Admin[]>(STORAGE_KEYS.ADMINS, []);
-        const filteredAdmins = admins.filter((a) => a.id !== id);
+        try {
+          const admins = getStorageData<Admin[]>(STORAGE_KEYS.ADMINS, []);
+          const adminToRemove = admins.find((a) => a.id === id);
 
-        if (filteredAdmins.length === admins.length) {
-          reject(new Error("Admin not found"));
-          return;
+          if (!adminToRemove) {
+            reject(new Error("Admin not found"));
+            return;
+          }
+
+          // Prevent removal of superadmin
+          if (adminToRemove.role === "superadmin") {
+            reject(new Error("Cannot remove super admin"));
+            return;
+          }
+
+          const filteredAdmins = admins.filter((a) => a.id !== id);
+          setStorageData(STORAGE_KEYS.ADMINS, filteredAdmins);
+          resolve();
+        } catch (error) {
+          reject(error);
         }
-
-        setStorageData(STORAGE_KEYS.ADMINS, filteredAdmins);
-        resolve();
       }, 300);
     });
   },
@@ -452,17 +571,32 @@ export const mockAPI = {
   updateAdmin: (id: string, updates: Partial<Admin>): Promise<Admin> => {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        const admins = getStorageData<Admin[]>(STORAGE_KEYS.ADMINS, []);
-        const adminIndex = admins.findIndex((a) => a.id === id);
+        try {
+          const admins = getStorageData<Admin[]>(STORAGE_KEYS.ADMINS, []);
+          const adminIndex = admins.findIndex((a) => a.id === id);
 
-        if (adminIndex === -1) {
-          reject(new Error("Admin not found"));
-          return;
+          if (adminIndex === -1) {
+            reject(new Error("Admin not found"));
+            return;
+          }
+
+          // Prevent role change for superadmin
+          const currentAdmin = admins[adminIndex];
+          if (
+            currentAdmin.role === "superadmin" &&
+            updates.role &&
+            updates.role !== "superadmin"
+          ) {
+            reject(new Error("Cannot change super admin role"));
+            return;
+          }
+
+          admins[adminIndex] = { ...admins[adminIndex], ...updates };
+          setStorageData(STORAGE_KEYS.ADMINS, admins);
+          resolve(admins[adminIndex]);
+        } catch (error) {
+          reject(error);
         }
-
-        admins[adminIndex] = { ...admins[adminIndex], ...updates };
-        setStorageData(STORAGE_KEYS.ADMINS, admins);
-        resolve(admins[adminIndex]);
       }, 200);
     });
   },
@@ -487,36 +621,75 @@ export const mockAPI = {
     });
   },
 
-  // System Stats
+  // Enhanced System Stats
   getSystemStats: (): Promise<SystemStats> => {
     return new Promise((resolve) => {
       setTimeout(() => {
-        // Recalculate stats from current data
-        const users = getStorageData<User[]>(STORAGE_KEYS.USERS, []);
-        const admins = getStorageData<Admin[]>(STORAGE_KEYS.ADMINS, []);
-        const transactions = getStorageData<Transaction[]>(
-          STORAGE_KEYS.TRANSACTIONS,
-          []
-        );
-
-        const stats: SystemStats = {
-          totalUsers: users.length,
-          activeUsers: users.filter((u) => u.status === "active").length,
-          totalAdmins: admins.length,
-          activeAdmins: admins.filter((a) => a.status === "active").length,
-          totalTransactions: transactions.length,
-          totalRevenue: transactions.reduce((sum, t) => sum + t.amount, 0),
-          systemUptime: 99.9,
-          lastUpdated: new Date().toISOString(),
-        };
-
+        const stats = calculateEnhancedStats();
         setStorageData(STORAGE_KEYS.SYSTEM_STATS, stats);
         resolve(stats);
       }, 200);
     });
   },
 
-  
+  // New methods for advanced features
+  getSystemHealth: (): Promise<SystemStats["systemHealth"]> => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const stats = calculateEnhancedStats();
+        resolve(stats.systemHealth);
+      }, 100);
+    });
+  },
+
+  exportSystemData: (): Promise<{
+    users: User[];
+    admins: Admin[];
+    transactions: Transaction[];
+    stats: SystemStats;
+  }> => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const users = getStorageData<User[]>(STORAGE_KEYS.USERS, []);
+        const admins = getStorageData<Admin[]>(STORAGE_KEYS.ADMINS, []);
+        const transactions = getStorageData<Transaction[]>(
+          STORAGE_KEYS.TRANSACTIONS,
+          []
+        );
+        const stats = calculateEnhancedStats();
+
+        resolve({ users, admins, transactions, stats });
+      }, 1000); // Simulate longer processing time for export
+    });
+  },
+
+  // Bulk operations for admin efficiency
+  bulkUpdateUsers: (
+    updates: { id: string; changes: Partial<User> }[]
+  ): Promise<User[]> => {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        try {
+          const users = getStorageData<User[]>(STORAGE_KEYS.USERS, []);
+          const updatedUsers: User[] = [];
+
+          updates.forEach(({ id, changes }) => {
+            const userIndex = users.findIndex((u) => u.id === id);
+            if (userIndex !== -1) {
+              users[userIndex] = { ...users[userIndex], ...changes };
+              updatedUsers.push(users[userIndex]);
+            }
+          });
+
+          setStorageData(STORAGE_KEYS.USERS, users);
+          resolve(updatedUsers);
+        } catch (error) {
+          reject(error);
+        }
+      }, 500);
+    });
+  },
+
   resetData: (): void => {
     Object.values(STORAGE_KEYS).forEach((key) => {
       localStorage.removeItem(key);
@@ -524,6 +697,5 @@ export const mockAPI = {
     initializeData();
   },
 };
-
 
 initializeData();

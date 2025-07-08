@@ -1,6 +1,21 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+export interface Transaction {
+  id: string;
+  type: "income" | "expense";
+  amount: number;
+  description: string;
+  category: string;
+  date: string;
+  method: string;
+  recipient?: string;
+  sender?: string;
+  reference?: string;
+  fee?: number;
+  status: "pending" | "completed" | "failed";
+}
+
 export interface User {
   id: string;
   email: string;
@@ -12,6 +27,7 @@ export interface User {
   lastLogin?: string;
   isActive: boolean;
   createdBy?: string;
+  transactions: Transaction[];
 }
 
 interface AuthState {
@@ -25,11 +41,19 @@ interface AuthState {
   register: (
     userData: Omit<
       User,
-      "id" | "createdAt" | "lastLogin" | "isActive" | "createdBy"
+      | "id"
+      | "createdAt"
+      | "lastLogin"
+      | "isActive"
+      | "createdBy"
+      | "transactions"
     > & { password: string }
   ) => Promise<void>;
   createUser: (
-    userData: Omit<User, "id" | "createdAt" | "lastLogin" | "isActive"> & {
+    userData: Omit<
+      User,
+      "id" | "createdAt" | "lastLogin" | "isActive" | "transactions"
+    > & {
       password: string;
     },
     createdById: string
@@ -37,6 +61,10 @@ interface AuthState {
   logout: () => void;
   clearError: () => void;
   setLoading: (loading: boolean) => void;
+  addTransaction: (
+    transaction: Omit<Transaction, "id" | "date" | "status">
+  ) => Promise<void>;
+  updateUserTransactions: (userId: string, transactions: Transaction[]) => void;
 }
 
 const mockUsers: User[] = [
@@ -50,6 +78,7 @@ const mockUsers: User[] = [
     createdAt: "2024-01-01T00:00:00Z",
     lastLogin: "2024-12-20T16:45:00Z",
     isActive: true,
+    transactions: [],
   },
 
   {
@@ -63,6 +92,7 @@ const mockUsers: User[] = [
     lastLogin: "2024-12-20T09:15:00Z",
     isActive: true,
     createdBy: "super-admin-001",
+    transactions: [],
   },
 
   {
@@ -76,6 +106,7 @@ const mockUsers: User[] = [
     lastLogin: "2025-12-20T14:30:00Z",
     isActive: true,
     createdBy: "admin-001",
+    transactions: [],
   },
 ];
 
@@ -165,10 +196,10 @@ export const useAuthStore = create<AuthState>()(
             createdAt: new Date().toISOString(),
             lastLogin: new Date().toISOString(),
             isActive: true,
+            transactions: [],
             // No createdBy for self-registered users
           };
 
-    
           mockUsers.push(newUser);
 
           set({
@@ -232,6 +263,7 @@ export const useAuthStore = create<AuthState>()(
           createdAt: new Date().toISOString(),
           isActive: true,
           createdBy: createdById,
+          transactions: [],
         };
 
         // Add to mock users
@@ -254,6 +286,95 @@ export const useAuthStore = create<AuthState>()(
 
       setLoading: (loading: boolean) => {
         set({ isLoading: loading });
+      },
+
+      addTransaction: async (transaction) => {
+        const currentUser = get().user;
+
+        if (!currentUser) {
+          throw new Error("You must be logged in to add transactions");
+        }
+
+        // Create new transaction
+        const newTransaction: Transaction = {
+          id: `txn-${Date.now()}`,
+          ...transaction,
+          date: new Date().toISOString(),
+          status: "pending",
+        };
+
+        // Update user transactions
+        const updatedTransactions = [
+          ...currentUser.transactions,
+          newTransaction,
+        ];
+
+        set(
+          (state) => {
+            const user = state.user;
+            if (!user) return state;
+
+            return {
+              user: {
+                ...user,
+                transactions: updatedTransactions,
+              },
+            };
+          },
+          false,
+          "addTransaction"
+        );
+
+        // Simulate API call
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        // Optionally, you can update the transaction status to 'completed' after some time
+        set(
+          (state) => {
+            const user = state.user;
+            if (!user) return state;
+
+            const transactionToUpdate = user.transactions.find(
+              (txn) => txn.id === newTransaction.id
+            );
+
+            if (!transactionToUpdate) return state;
+
+            const updatedTransaction: Transaction = {
+              ...transactionToUpdate,
+              status: "completed",
+            };
+
+            const updatedUser: User = {
+              ...user,
+              transactions: user.transactions.map((txn) =>
+                txn.id === updatedTransaction.id ? updatedTransaction : txn
+              ),
+            };
+
+            return { user: updatedUser };
+          },
+          false,
+          "updateTransactionStatus"
+        );
+      },
+
+      updateUserTransactions: (userId, transactions) => {
+        set(
+          (state) => {
+            const user = state.user;
+            if (!user || user.id !== userId) return state;
+
+            return {
+              user: {
+                ...user,
+                transactions,
+              },
+            };
+          },
+          false,
+          "updateUserTransactions"
+        );
       },
     }),
     {

@@ -35,22 +35,22 @@ const TransactionList: React.FC<TransactionListProps> = ({ limit }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
-  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const [selectedTransaction, setSelectedTransaction] =
+    useState<Transaction | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
 
+  console.log("transaction", transactions);
 
   const handleViewDetails = (transaction: Transaction) => {
     setSelectedTransaction(transaction);
     setIsModalOpen(true);
   };
 
-
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedTransaction(null);
   };
-
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-ET", {
@@ -60,7 +60,6 @@ const TransactionList: React.FC<TransactionListProps> = ({ limit }) => {
       maximumFractionDigits: 2,
     }).format(amount);
   };
-
 
   const getTransactionIcon = (category: string) => {
     const iconMap = {
@@ -75,7 +74,6 @@ const TransactionList: React.FC<TransactionListProps> = ({ limit }) => {
     return iconMap[category as keyof typeof iconMap] || iconMap.default;
   };
 
-
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "completed":
@@ -89,7 +87,6 @@ const TransactionList: React.FC<TransactionListProps> = ({ limit }) => {
     }
   };
 
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case "completed":
@@ -102,8 +99,6 @@ const TransactionList: React.FC<TransactionListProps> = ({ limit }) => {
         return "text-gray-600 bg-gray-50";
     }
   };
-
-
 
   const filteredTransactions = transactions
     ? transactions
@@ -120,8 +115,14 @@ const TransactionList: React.FC<TransactionListProps> = ({ limit }) => {
             transaction.description
               .toLowerCase()
               .includes(searchTerm.toLowerCase()) ||
-            (transaction.recipient && transaction.recipient.toLowerCase().includes(searchTerm.toLowerCase())) ||
-            (transaction.sender && transaction.sender.toLowerCase().includes(searchTerm.toLowerCase()));
+            (transaction.recipient &&
+              transaction.recipient
+                .toLowerCase()
+                .includes(searchTerm.toLowerCase())) ||
+            (transaction.sender &&
+              transaction.sender
+                .toLowerCase()
+                .includes(searchTerm.toLowerCase()));
 
           const matchesFilter =
             selectedFilter === "all" ||
@@ -133,7 +134,6 @@ const TransactionList: React.FC<TransactionListProps> = ({ limit }) => {
         .slice(0, limit) // Apply limit if provided
     : [];
 
-
   const filters = [
     { value: "all", label: "All Transactions" },
     { value: "income", label: "Income" },
@@ -142,13 +142,14 @@ const TransactionList: React.FC<TransactionListProps> = ({ limit }) => {
     { value: "pending", label: "Pending" },
   ];
 
-
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-200">
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">
-            {limit ? `Recent Transactions (Last ${limit})` : 'Recent Transactions'}
+            {limit
+              ? `Recent Transactions (Last ${limit})`
+              : "Recent Transactions"}
           </h3>
           <div className="flex items-center space-x-2">
             <button
@@ -296,7 +297,9 @@ const TransactionList: React.FC<TransactionListProps> = ({ limit }) => {
         <TransactionDetailsModal
           transaction={{
             ...selectedTransaction,
-            time: selectedTransaction.time || new Date(selectedTransaction.date).toLocaleTimeString()
+            time:
+              selectedTransaction.time ||
+              new Date(selectedTransaction.date).toLocaleTimeString(),
           }}
           isOpen={isModalOpen}
           onClose={handleCloseModal}

@@ -1,188 +1,411 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
 import {
-  ArrowLeft,
   Send,
-  Clock,
-  Check,
-  Phone,
-  User,
-  Wallet,
-  Zap,
+  ArrowLeft,
+  CheckCircle,
   Shield,
-  Loader2,
+  Zap,
+  Copy,
+  Share2,
+  Download,
 } from "lucide-react";
+import { toastService } from "../../services/toastService";
+import { transactionService } from "../../services/transactionService";
+import { useAuth } from "../../hooks/useAuth";
 
-const SendMoneyPage = () => {
-  const navigate = useNavigate();
+import SendMoneyHeader from "../../components/dashbaord/sendmoney/SendMoneyHeader";
+import QuickActions from "../../components/dashbaord/sendmoney/QuickActions";
+import ContactsModal from "../../components/dashbaord/sendmoney/ContactsModal";
+import RecentTransactionsModal from "../../components/dashbaord/sendmoney/RecentTransactionsModal";
+import RecipientInput from "../../components/dashbaord/sendmoney/RecipientInput";
+import AmountInput from "../../components/dashbaord/sendmoney/AmountInput";
+import PaymentMethodSelector from "../../components/dashbaord/sendmoney/PaymentMethodSelector";
+import NoteInput from "../../components/dashbaord/sendmoney/NoteInput";
 
-  const [step, setStep] = useState<"form" | "processing" | "success">("form");
-  const [formData, setFormData] = useState({
-    recipientName: "",
-    recipientPhone: "",
-    amount: "",
-    description: "",
-    paymentMethod: "wallet",
+interface SendMoneyFormData {
+  recipient: string;
+  amount: number;
+  note: string;
+  method: "wallet" | "bank" | "mobile";
+}
+
+interface Contact {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  avatar: string;
+  isFrequent: boolean;
+}
+
+interface RecentTransaction {
+  id: string;
+  recipient: string;
+  amount: number;
+  date: string;
+}
+
+const SendMoneyForm = () => {
+  const [formData, setFormData] = useState<SendMoneyFormData>({
+    recipient: "",
+    amount: 0,
+    note: "",
+    method: "wallet",
   });
-  const [transactionId, setTransactionId] = useState("");
-  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Simulate user's wallet balance
-  const walletBalance = 15420.75;
+  const [step, setStep] = useState<
+    "form" | "confirm" | "processing" | "success"
+  >("form");
+  const [errors, setErrors] = useState<{
+    [K in keyof SendMoneyFormData]?: string;
+  }>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [showContacts, setShowContacts] = useState(false);
+  const [showRecent, setShowRecent] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showBalance, setShowBalance] = useState(false);
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
 
-  // Generate transaction ID when processing
-  useEffect(() => {
-    if (step === "processing") {
-      setTransactionId(
-        `CHP${Math.random().toString(36).substr(2, 9).toUpperCase()}`
-      );
+  const { user } = useAuth();
+
+  // Mock data
+  const [contacts] = useState<Contact[]>([
+    {
+      id: "1",
+      name: "Abebe Kebede",
+      email: "abebe@gmail.com",
+      phone: "+251911234567",
+      avatar: "AK",
+      isFrequent: true,
+    },
+    {
+      id: "2",
+      name: "Tigist Haile",
+      email: "tigist@yahoo.com",
+      phone: "+251922345678",
+      avatar: "TH",
+      isFrequent: true,
+    },
+    {
+      id: "3",
+      name: "Dawit Mengistu",
+      email: "dawit@outlook.com",
+      phone: "+251933456789",
+      avatar: "DM",
+      isFrequent: false,
+    },
+  ]);
+
+  const [recentTransactions] = useState<RecentTransaction[]>([
+    { id: "1", recipient: "Abebe Kebede", amount: 2500, date: "2 hours ago" },
+    { id: "2", recipient: "Tigist Haile", amount: 1200, date: "Yesterday" },
+    { id: "3", recipient: "Dawit Mengistu", amount: 5000, date: "3 days ago" },
+  ]);
+
+  const balance = 125450.75;
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("en-ET", {
+      style: "currency",
+      currency: "ETB",
+      minimumFractionDigits: 2,
+    }).format(amount);
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors: { [K in keyof SendMoneyFormData]?: string } = {};
+
+    if (!formData.recipient.trim()) {
+      newErrors.recipient = "Recipient is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.recipient)) {
+      newErrors.recipient = "Please enter a valid email address";
     }
-  }, [step]);
 
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.recipientName.trim()) {
-      newErrors.recipientName = "Recipient name is required";
-    }
-
-    if (!formData.recipientPhone.trim()) {
-      newErrors.recipientPhone = "Phone number is required";
-    } else if (!/^\+251\d{9}$/.test(formData.recipientPhone)) {
-      newErrors.recipientPhone = "Please enter a valid Ethiopian phone number (+251XXXXXXXXX)";
-    }
-
-    if (!formData.amount.trim()) {
-      newErrors.amount = "Amount is required";
-    } else {
-      const amount = parseFloat(formData.amount);
-      if (isNaN(amount) || amount <= 0) {
-        newErrors.amount = "Please enter a valid amount";
-      } else if (amount > walletBalance) {
-        newErrors.amount = "Insufficient wallet balance";
-      } else if (amount < 1) {
-        newErrors.amount = "Minimum amount is 1 ETB";
-      }
+    if (!formData.amount || formData.amount <= 0) {
+      newErrors.amount = "Amount must be greater than 0";
+    } else if (formData.amount > balance) {
+      newErrors.amount = "Insufficient balance";
+      toastService.error("Insufficient balance for this transaction");
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
+    setStep("confirm");
+  };
 
+  const processTransaction = async () => {
     setStep("processing");
-    
-    // Simulate processing time
-    setTimeout(() => {
-      setStep("success");
-    }, 3000);
-  };
+    setIsLoading(true);
+    const loadingId = toastService.loading("Processing your payment...");
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData({ ...formData, [field]: value });
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors({ ...errors, [field]: "" });
+    try {
+      const transactionId = `CHP${Math.random()
+        .toString(36)
+        .substr(2, 9)
+        .toUpperCase()}`;
+
+      const transactionData = {
+        type: "expense" as const,
+        amount: formData.amount,
+        description:
+          formData.note ||
+          `Transfer to ${selectedContact?.name || formData.recipient}`,
+        category: "Transfer",
+        method:
+          formData.method === "wallet"
+            ? "Chapa Wallet"
+            : formData.method === "bank"
+            ? "Bank Transfer"
+            : "Mobile Money",
+        recipient: selectedContact?.name || formData.recipient,
+        sender: user?.id,
+        reference: transactionId,
+        fee: 0,
+      };
+
+      await transactionService.createTransaction(transactionData);
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+
+      toastService.dismiss(loadingId);
+      toastService.success(
+        `Payment of ${formatCurrency(formData.amount)} sent successfully!`
+      );
+
+      setIsLoading(false);
+      setStep("success");
+    } catch (error) {
+      console.error("Error creating transaction:", error);
+      toastService.dismiss(loadingId);
+      toastService.error("Transaction failed. Please try again.");
+      setIsLoading(false);
+      setStep("form");
     }
   };
 
-  const resetForm = () => {
-    setStep("form");
-    setFormData({
-      recipientName: "",
-      recipientPhone: "",
-      amount: "",
-      description: "",
-      paymentMethod: "wallet",
-    });
-    setErrors({});
-    setTransactionId("");
+  const selectContact = (contact: Contact) => {
+    setFormData({ ...formData, recipient: contact.email });
+    setSelectedContact(contact);
+    setShowContacts(false);
+    setSearchTerm("");
+    toastService.info(`Selected ${contact.name} as recipient`);
   };
 
-  if (step === "processing") {
+  const selectRecentTransaction = (transaction: RecentTransaction) => {
+    setFormData({ ...formData, recipient: transaction.recipient });
+    setShowRecent(false);
+    toastService.info(`Using recent transaction with ${transaction.recipient}`);
+  };
+
+  const reset = () => {
+    setFormData({ recipient: "", amount: 0, note: "", method: "wallet" });
+    setStep("form");
+    setErrors({});
+    setSelectedContact(null);
+    toastService.info("Ready to make another payment");
+  };
+
+  const copyTransactionId = () => {
+    const transactionId = `TXN-${Date.now()}`;
+    navigator.clipboard.writeText(transactionId);
+    toastService.success("Transaction ID copied to clipboard");
+  };
+
+  // Success Screen
+  if (step === "success") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-        <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full text-center">
-          <div className="flex items-center justify-center mb-6">
-            <div className="relative">
-              <div className="w-20 h-20 bg-gradient-to-r from-[#7DC400] to-green-500 rounded-full flex items-center justify-center">
-                <Loader2 className="w-8 h-8 text-white animate-spin" />
+      <div className="w-full max-w-sm mx-auto bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+        <div className="bg-gradient-to-br from-[#7DC400] via-green-500 to-emerald-600 p-6 text-white text-center relative overflow-hidden">
+          <div className="w-16 h-16 mx-auto mb-4 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+            <CheckCircle className="w-8 h-8 text-white" />
+          </div>
+          <h3 className="text-xl font-bold mb-2">Payment Sent!</h3>
+          <p className="text-green-100">Successfully transferred</p>
+        </div>
+
+        <div className="p-6 space-y-4">
+          <div className="text-center">
+            <p className="text-gray-600 text-sm">Amount Sent</p>
+            <p className="text-2xl font-bold text-gray-900">
+              {formatCurrency(formData.amount)}
+            </p>
+          </div>
+
+          <div className="space-y-3 text-sm">
+            <div className="flex justify-between">
+              <span className="text-gray-600">To</span>
+              <span className="font-medium">
+                {selectedContact?.name || formData.recipient}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Transaction ID</span>
+              <div className="flex items-center space-x-1">
+                <span className="font-mono text-xs">TXN-{Date.now()}</span>
+                <button onClick={copyTransactionId} className="p-1">
+                  <Copy className="w-3 h-3 text-gray-400" />
+                </button>
               </div>
-              <div className="absolute -top-2 -right-2 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                <Send className="w-4 h-4 text-white" />
-              </div>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Status</span>
+              <span className="text-[#7DC400] font-medium">Completed</span>
             </div>
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Processing Payment</h2>
-          <p className="text-gray-600 mb-4">Securely sending your money...</p>
-          <div className="bg-gray-50 rounded-xl p-4 mb-6">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm text-gray-600">Transaction ID</span>
-              <span className="text-sm font-mono text-gray-800">{transactionId}</span>
+
+          <div className="space-y-3 pt-4">
+            <button
+              onClick={reset}
+              className="w-full bg-[#7DC400] text-white py-3 rounded-2xl font-semibold hover:bg-green-600 transition-colors"
+            >
+              Send Another Payment
+            </button>
+            <div className="grid grid-cols-2 gap-2">
+              <button className="flex items-center justify-center space-x-1 bg-gray-100 text-gray-700 py-2 rounded-xl text-sm">
+                <Share2 className="w-4 h-4" />
+                <span>Share</span>
+              </button>
+              <button className="flex items-center justify-center space-x-1 bg-gray-100 text-gray-700 py-2 rounded-xl text-sm">
+                <Download className="w-4 h-4" />
+                <span>Receipt</span>
+              </button>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Amount</span>
-              <span className="text-lg font-bold text-[#7DC400]">{formData.amount} ETB</span>
-            </div>
-          </div>
-          <div className="flex items-center justify-center space-x-2 text-sm text-gray-500">
-            <Shield className="w-4 h-4" />
-            <span>256-bit SSL encrypted</span>
           </div>
         </div>
       </div>
     );
   }
 
-  if (step === "success") {
+  // Processing Screen
+  if (step === "processing") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center p-4">
-        <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full text-center">
-          <div className="flex items-center justify-center mb-6">
-            <div className="w-20 h-20 bg-gradient-to-r from-[#7DC400] to-green-500 rounded-full flex items-center justify-center">
-              <Check className="w-10 h-10 text-white" />
+      <div className="w-full max-w-sm mx-auto bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+        <div className="bg-gradient-to-br from-[#7DC400] via-green-500 to-emerald-600 p-6 text-white text-center">
+          <div className="w-16 h-16 mx-auto mb-4 relative">
+            <div className="w-16 h-16 border-4 border-white/30 rounded-full animate-spin border-t-white"></div>
+            <Zap className="w-6 h-6 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white animate-pulse" />
+          </div>
+          <h3 className="text-xl font-bold mb-2">Processing Payment</h3>
+          <p className="text-green-100">Securing your transaction...</p>
+        </div>
+
+        <div className="p-6">
+          <div className="space-y-4">
+            {[
+              { label: "Validating recipient", completed: true },
+              { label: "Verifying funds", completed: true },
+              { label: "Processing payment", completed: false },
+            ].map((step, index) => (
+              <div key={index} className="flex items-center space-x-3">
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    step.completed
+                      ? "bg-[#7DC400] text-white"
+                      : "bg-[#7DC400]/20 text-[#7DC400]"
+                  }`}
+                >
+                  {step.completed ? (
+                    <CheckCircle className="w-4 h-4" />
+                  ) : (
+                    <div className="w-4 h-4 border-2 border-[#7DC400] rounded-full animate-spin border-t-transparent"></div>
+                  )}
+                </div>
+                <span className="text-gray-700 text-sm">{step.label}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 p-3 bg-blue-50 rounded-xl">
+            <p className="text-xs text-gray-600 text-center flex items-center justify-center">
+              <Shield className="w-3 h-3 mr-1" />
+              Secured with military-grade encryption
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Confirmation Screen
+  if (step === "confirm") {
+    return (
+      <div className="w-full max-w-sm mx-auto bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+        <div className="bg-gradient-to-br from-[#7DC400] via-green-500 to-emerald-600 p-6 text-white">
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={() => setStep("form")}
+              className="p-2 bg-white/20 rounded-xl hover:bg-white/30 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+            <div>
+              <h3 className="text-xl font-bold">Confirm Payment</h3>
+              <p className="text-green-100 text-sm">Review before sending</p>
             </div>
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Payment Successful!</h2>
-          <p className="text-gray-600 mb-6">Your money has been sent successfully</p>
-          
-          <div className="bg-gray-50 rounded-xl p-6 mb-6 space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">To</span>
-              <span className="font-medium text-gray-800">{formData.recipientName}</span>
+        </div>
+
+        <div className="p-6">
+          <div className="text-center mb-6">
+            <p className="text-gray-600 text-sm mb-1">You're sending</p>
+            <p className="text-3xl font-bold text-gray-900">
+              {formatCurrency(formData.amount)}
+            </p>
+          </div>
+
+          <div className="bg-gray-50 rounded-2xl p-4 space-y-3 mb-6">
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">To</span>
+              <div className="text-right">
+                <p className="font-semibold">
+                  {selectedContact?.name || formData.recipient}
+                </p>
+                {selectedContact && (
+                  <p className="text-xs text-gray-500">
+                    {selectedContact.email}
+                  </p>
+                )}
+              </div>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Amount</span>
-              <span className="text-xl font-bold text-[#7DC400]">{formData.amount} ETB</span>
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Method</span>
+              <span className="font-medium capitalize">
+                {formData.method} Transfer
+              </span>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Transaction ID</span>
-              <span className="text-sm font-mono text-gray-800">{transactionId}</span>
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Fee</span>
+              <span className="font-medium text-[#7DC400]">Free</span>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Date</span>
-              <span className="text-sm text-gray-800">{new Date().toLocaleDateString()}</span>
-            </div>
+            {formData.note && (
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Note</span>
+                <span className="font-medium text-right max-w-32 truncate">
+                  {formData.note}
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="space-y-3">
             <button
-              onClick={resetForm}
-              className="w-full bg-gradient-to-r from-[#7DC400] to-green-500 text-white font-semibold py-3 px-6 rounded-xl hover:opacity-90 transition-opacity"
+              onClick={processTransaction}
+              className="w-full bg-[#7DC400] text-white py-3 rounded-2xl font-semibold hover:bg-green-600 transition-colors"
             >
-              Send Another Payment
+              <span className="flex items-center justify-center space-x-2">
+                <Send className="w-4 h-4" />
+                <span>Send {formatCurrency(formData.amount)}</span>
+              </span>
             </button>
             <button
-              onClick={() => navigate("/dashboard")}
-              className="w-full bg-gray-100 text-gray-700 font-semibold py-3 px-6 rounded-xl hover:bg-gray-200 transition-colors"
+              onClick={() => setStep("form")}
+              className="w-full bg-gray-100 text-gray-700 py-3 rounded-2xl font-semibold hover:bg-gray-200 transition-colors"
             >
-              Back to Dashboard
+              Back to Edit
             </button>
           </div>
         </div>
@@ -191,207 +414,83 @@ const SendMoneyPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex items-center mb-8">
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="flex items-center text-gray-600 hover:text-gray-800 transition-colors mr-4"
-          >
-            <ArrowLeft className="w-5 h-5 mr-1" />
-            Back
-          </button>
-          <h1 className="text-3xl font-bold text-gray-800">Send Money</h1>
-        </div>
+    <div className="w-full max-w-sm mx-auto bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+      <SendMoneyHeader
+        balance={balance}
+        showBalance={showBalance}
+        onToggleBalance={() => setShowBalance(!showBalance)}
+        formatCurrency={formatCurrency}
+      />
 
-        <div className="max-w-2xl mx-auto">
-          {/* Main Card */}
-          <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
-            {/* Card Header */}
-            <div className="bg-gradient-to-r from-[#7DC400] to-green-500 p-6 text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold mb-1">Quick Transfer</h2>
-                  <p className="text-green-100">Send money instantly with Chapa</p>
-                </div>
-                <div className="bg-white/20 p-3 rounded-2xl">
-                  <Send className="w-8 h-8" />
-                </div>
-              </div>
+      <form onSubmit={handleSubmit} className="p-6 space-y-5">
+        <QuickActions
+          onShowContacts={() => setShowContacts(!showContacts)}
+          onShowRecent={() => setShowRecent(!showRecent)}
+        />
+
+        <ContactsModal
+          isOpen={showContacts}
+          contacts={contacts}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          onSelectContact={selectContact}
+          onClose={() => setShowContacts(false)}
+        />
+
+        <RecentTransactionsModal
+          isOpen={showRecent}
+          transactions={recentTransactions}
+          onSelectTransaction={selectRecentTransaction}
+          onClose={() => setShowRecent(false)}
+          formatCurrency={formatCurrency}
+        />
+
+        <RecipientInput
+          recipient={formData.recipient}
+          error={errors.recipient}
+          selectedContact={selectedContact}
+          onRecipientChange={(recipient) =>
+            setFormData({ ...formData, recipient })
+          }
+        />
+
+        <AmountInput
+          amount={formData.amount}
+          error={errors.amount}
+          onAmountChange={(amount) => setFormData({ ...formData, amount })}
+          formatCurrency={formatCurrency}
+        />
+
+        <PaymentMethodSelector
+          selectedMethod={formData.method}
+          onMethodChange={(method) => setFormData({ ...formData, method })}
+        />
+
+        <NoteInput
+          note={formData.note}
+          onNoteChange={(note) => setFormData({ ...formData, note })}
+        />
+
+        <button
+          type="submit"
+          disabled={isLoading || !formData.recipient || !formData.amount}
+          className="w-full bg-[#7DC400] text-white py-3 rounded-2xl font-semibold hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+        >
+          {isLoading ? (
+            <div className="flex items-center justify-center space-x-2">
+              <div className="w-4 h-4 border-2 border-white/30 rounded-full animate-spin border-t-white"></div>
+              <span>Processing...</span>
             </div>
-
-            {/* Wallet Balance */}
-            <div className="p-6 border-b border-gray-100">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="bg-blue-100 p-2 rounded-xl mr-3">
-                    <Wallet className="w-5 h-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Available Balance</p>
-                    <p className="text-2xl font-bold text-gray-800">{walletBalance.toLocaleString()} ETB</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs text-gray-500">Chapa Wallet</p>
-                  <div className="flex items-center text-green-600 text-sm">
-                    <Shield className="w-3 h-3 mr-1" />
-                    Verified
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="p-6 space-y-6">
-              {/* Recipient Information */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-800 flex items-center">
-                  <User className="w-5 h-5 mr-2 text-gray-600" />
-                  Recipient Information
-                </h3>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.recipientName}
-                    onChange={(e) => handleInputChange("recipientName", e.target.value)}
-                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[#7DC400] focus:border-[#7DC400] transition-colors ${
-                      errors.recipientName ? "border-red-500" : "border-gray-300"
-                    }`}
-                    placeholder="Enter recipient's full name"
-                  />
-                  {errors.recipientName && (
-                    <p className="text-red-500 text-sm mt-1">{errors.recipientName}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Phone Number
-                  </label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                    <input
-                      type="tel"
-                      value={formData.recipientPhone}
-                      onChange={(e) => handleInputChange("recipientPhone", e.target.value)}
-                      className={`w-full pl-12 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-[#7DC400] focus:border-[#7DC400] transition-colors ${
-                        errors.recipientPhone ? "border-red-500" : "border-gray-300"
-                      }`}
-                      placeholder="+251912345678"
-                    />
-                  </div>
-                  {errors.recipientPhone && (
-                    <p className="text-red-500 text-sm mt-1">{errors.recipientPhone}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Amount */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800 flex items-center mb-4">
-                  <Wallet className="w-5 h-5 mr-2 text-gray-600" />
-                  Amount
-                </h3>
-                
-                <div className="relative">
-                  <input
-                    type="number"
-                    value={formData.amount}
-                    onChange={(e) => handleInputChange("amount", e.target.value)}
-                    className={`w-full px-4 py-4 text-2xl font-bold border rounded-xl focus:ring-2 focus:ring-[#7DC400] focus:border-[#7DC400] transition-colors ${
-                      errors.amount ? "border-red-500" : "border-gray-300"
-                    }`}
-                    placeholder="0.00"
-                    min="1"
-                    step="0.01"
-                  />
-                  <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-2xl font-bold text-gray-500">
-                    ETB
-                  </span>
-                </div>
-                {errors.amount && (
-                  <p className="text-red-500 text-sm mt-1">{errors.amount}</p>
-                )}
-
-                {/* Quick Amount Buttons */}
-                <div className="grid grid-cols-4 gap-2 mt-3">
-                  {[100, 500, 1000, 5000].map((quickAmount) => (
-                    <button
-                      key={quickAmount}
-                      type="button"
-                      onClick={() => handleInputChange("amount", quickAmount.toString())}
-                      className="py-2 px-3 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                    >
-                      {quickAmount}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Description */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Description (Optional)
-                </label>
-                <input
-                  type="text"
-                  value={formData.description}
-                  onChange={(e) => handleInputChange("description", e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#7DC400] focus:border-[#7DC400] transition-colors"
-                  placeholder="What's this payment for?"
-                />
-              </div>
-
-              {/* Transaction Features */}
-              <div className="bg-blue-50 rounded-xl p-4">
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div className="flex flex-col items-center">
-                    <div className="bg-blue-100 p-2 rounded-lg mb-2">
-                      <Zap className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <span className="text-xs text-gray-600">Instant Transfer</span>
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <div className="bg-green-100 p-2 rounded-lg mb-2">
-                      <Shield className="w-5 h-5 text-green-600" />
-                    </div>
-                    <span className="text-xs text-gray-600">Secure Payment</span>
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <div className="bg-purple-100 p-2 rounded-lg mb-2">
-                      <Clock className="w-5 h-5 text-purple-600" />
-                    </div>
-                    <span className="text-xs text-gray-600">24/7 Available</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Send Button */}
-              <button
-                type="submit"
-                className="w-full bg-gradient-to-r from-[#7DC400] to-green-500 text-white font-bold py-4 px-6 rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center space-x-2 text-lg"
-              >
-                <Send className="w-5 h-5" />
-                <span>Send Money</span>
-              </button>
-
-              {/* Security Notice */}
-              <div className="text-center text-xs text-gray-500">
-                <Shield className="w-4 h-4 inline mr-1" />
-                Your transaction is protected by 256-bit SSL encryption
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
+          ) : (
+            <span className="flex items-center justify-center space-x-2">
+              <Send className="w-4 h-4" />
+              <span>Continue to Review</span>
+            </span>
+          )}
+        </button>
+      </form>
     </div>
   );
 };
 
-export default SendMoneyPage;
+export default SendMoneyForm;

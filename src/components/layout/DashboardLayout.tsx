@@ -37,11 +37,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notifications] = useState(3);
 
-  // Role-based navigation
   const getNavigation = () => {
     if (!user) return { mainNav: [], secondaryNav: [] };
 
-    // User-specific navigation
     if (user.role === "user") {
       return {
         mainNav: [
@@ -123,7 +121,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             name: "Transactions",
             icon: FileText,
             key: "transactions",
-            route: "/dashboard/transactions", // Updated to use the standard transaction route
+            route: "/dashboard/transactions",
           },
           {
             name: "Analytics",
@@ -219,7 +217,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       };
     }
 
-    // Default navigation as fallback
     return {
       mainNav: [
         { name: "Dashboard", icon: Home, key: "dashboard", route: "/" },
@@ -231,9 +228,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     };
   };
 
-  // Using consistent brand colors with role indicators
   const brandColors = {
-    primary: "bg-[#7DC400]", // Chapa's primary green color
+    primary: "bg-[#7DC400]",
     primaryHover: "hover:bg-[#6BB000]",
     primaryActive: "bg-[#555a4c]",
     headerColor: "bg-gradient-to-r from-[#7DC400] to-[#6BB000]",
@@ -244,8 +240,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     },
   };
 
-  const { mainNav, secondaryNav, roleIcon, roleLabel, roleDescription } =
-    getNavigation();
+  const { mainNav, secondaryNav, roleIcon, roleLabel } = getNavigation();
   const roleColor =
     brandColors.roleIndicator[
       user?.role as keyof typeof brandColors.roleIndicator
@@ -301,7 +296,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         />
       </div>
 
-      {/* Main content */}
       <div className="lg:pl-64 flex flex-col flex-1">
         {/* Top header */}
         <header
@@ -317,11 +311,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               </button>
               <div className="ml-4 lg:ml-0 flex items-center">
                 <h1 className="text-xl font-semibold">{roleLabel} Dashboard</h1>
-                <div
-                  className={`ml-3 px-2 py-1 rounded-md text-xs font-medium ${roleColor} text-white`}
-                >
-                  {roleLabel}
-                </div>
               </div>
             </div>
 
@@ -356,26 +345,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
         {/* Page content */}
         <main className="flex-1 overflow-y-auto">
-          <div className="p-4 sm:p-6">
-            {/* Role indicator - only show on non-header pages */}
-            <div className="mb-6 flex items-center">
-              <div
-                className={`w-10 h-10 ${roleColor} rounded-lg flex items-center justify-center mr-3`}
-              >
-                {roleIcon}
-              </div>
-              <div>
-                <h1 className="text-xl font-semibold text-gray-900">
-                  {roleLabel} Dashboard
-                </h1>
-                {roleDescription && (
-                  <p className="text-sm text-gray-500">{roleDescription}</p>
-                )}
-              </div>
-            </div>
-
-            {children}
-          </div>
+          <div className="p-4">{children}</div>
         </main>
       </div>
     </div>
