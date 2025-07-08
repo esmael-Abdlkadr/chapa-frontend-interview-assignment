@@ -168,7 +168,7 @@ export const useAuthStore = create<AuthState>()(
             // No createdBy for self-registered users
           };
 
-          // Add to mock users (in real app, this would be an API call)
+    
           mockUsers.push(newUser);
 
           set({

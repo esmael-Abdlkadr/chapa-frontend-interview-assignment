@@ -39,8 +39,14 @@ const TransactionsPage: React.FC = () => {
 
   const hasManagePermission = hasPermission("transactions.manage");
 
-  // Filter transactions based on selected criteria
   const filteredTransactions = allTransactions
+    .filter((transaction) => {
+
+      if (user?.role === "user") {
+        return transaction.userId === user.id;
+      }
+      return true;
+    })
     .filter((transaction) => {
       // Filter by type or status
       if (selectedFilter !== "all") {
@@ -53,14 +59,12 @@ const TransactionsPage: React.FC = () => {
       return true;
     })
     .filter((transaction) => {
-      // Filter by category
       if (selectedCategory !== "all") {
         return transaction.category === selectedCategory;
       }
       return true;
     })
     .filter((transaction) => {
-      // Filter by date range
       if (startDate && endDate) {
         const transactionDate = new Date(transaction.date);
         const start = new Date(startDate);
@@ -70,7 +74,6 @@ const TransactionsPage: React.FC = () => {
       return true;
     })
     .filter((transaction) => {
-      // Filter by search term
       if (searchTerm.trim() === "") {
         return true;
       }

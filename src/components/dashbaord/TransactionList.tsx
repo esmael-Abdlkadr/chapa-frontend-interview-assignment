@@ -1,4 +1,7 @@
 import React, { useState } from "react";
+import { useAuth } from "../../hooks/useAuth";
+import useTransaction from "../../hooks/useTransaction";
+import { useNavigate } from "react-router-dom";
 import {
   Search,
   Filter,
@@ -16,133 +19,38 @@ import {
   Smartphone,
   Eye,
 } from "lucide-react";
+
+import type { Transaction as ApiTransaction } from "../../services/mockAPi";
+
+type Transaction = ApiTransaction & { time?: string; balance?: number };
 import TransactionDetailsModal from "./TransactionDetailsModal";
 
-interface Transaction {
-  id: string;
-  type: "income" | "expense";
-  amount: number;
-  description: string;
-  date: string;
-  time: string;
-  status: "completed" | "pending" | "failed";
-  category: string;
-  method: string;
-  recipient?: string;
-  sender?: string;
-  reference?: string;
-  fee?: number;
-  balance?: number;
+interface TransactionListProps {
+  limit?: number;
 }
 
-const TransactionList: React.FC = () => {
+const TransactionList: React.FC<TransactionListProps> = ({ limit }) => {
+  const { user } = useAuth();
+  const { transactions } = useTransaction();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
-  const [selectedTransaction, setSelectedTransaction] =
-    useState<Transaction | null>(null);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
 
-  const transactions: Transaction[] = [
-    {
-      id: "TXN-001",
-      type: "income",
-      amount: 15000,
-      description: "Salary Payment",
-      date: "2025-01-08",
-      time: "09:30",
-      status: "completed",
-      category: "income",
-      method: "bank_transfer",
-      sender: "Ethiopian Airlines",
-      reference: "SAL-2025-001",
-      balance: 45000,
-    },
-    {
-      id: "TXN-002",
-      type: "expense",
-      amount: 450,
-      description: "Coffee Purchase",
-      date: "2025-01-08",
-      time: "08:15",
-      status: "completed",
-      category: "food",
-      method: "chapa_wallet",
-      recipient: "Tomoca Coffee",
-      reference: "CFE-2025-002",
-      fee: 5,
-      balance: 30000,
-    },
-    {
-      id: "TXN-003",
-      type: "expense",
-      amount: 1250,
-      description: "Electricity Bill",
-      date: "2025-01-07",
-      time: "14:22",
-      status: "pending",
-      category: "utilities",
-      method: "mobile_money",
-      recipient: "Ethiopian Electric Utility",
-      reference: "ELC-2025-003",
-      fee: 10,
-      balance: 30450,
-    },
-    {
-      id: "TXN-004",
-      type: "expense",
-      amount: 3200,
-      description: "Online Shopping",
-      date: "2025-01-07",
-      time: "16:45",
-      status: "completed",
-      category: "shopping",
-      method: "card",
-      recipient: "JumiaET",
-      reference: "SHP-2025-004",
-      fee: 25,
-      balance: 31700,
-    },
-    {
-      id: "TXN-005",
-      type: "income",
-      amount: 5500,
-      description: "Freelance Payment",
-      date: "2025-01-06",
-      time: "11:30",
-      status: "completed",
-      category: "income",
-      method: "chapa_wallet",
-      sender: "Tech Solutions Ltd",
-      reference: "FRE-2025-005",
-      balance: 34900,
-    },
-    {
-      id: "TXN-006",
-      type: "expense",
-      amount: 850,
-      description: "Taxi Fare",
-      date: "2025-01-06",
-      time: "18:20",
-      status: "failed",
-      category: "transport",
-      method: "mobile_money",
-      recipient: "Ride Share",
-      reference: "TXI-2025-006",
-      fee: 8,
-      balance: 29400,
-    },
-  ];
 
   const handleViewDetails = (transaction: Transaction) => {
     setSelectedTransaction(transaction);
     setIsModalOpen(true);
   };
 
+
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedTransaction(null);
   };
+
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-ET", {
@@ -152,6 +60,7 @@ const TransactionList: React.FC = () => {
       maximumFractionDigits: 2,
     }).format(amount);
   };
+
 
   const getTransactionIcon = (category: string) => {
     const iconMap = {
@@ -166,6 +75,7 @@ const TransactionList: React.FC = () => {
     return iconMap[category as keyof typeof iconMap] || iconMap.default;
   };
 
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "completed":
@@ -178,6 +88,7 @@ const TransactionList: React.FC = () => {
         return <AlertCircle className="w-4 h-4 text-gray-500" />;
     }
   };
+
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -192,21 +103,36 @@ const TransactionList: React.FC = () => {
     }
   };
 
-  const filteredTransactions = transactions.filter((transaction) => {
-    const matchesSearch =
-      transaction.description
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      transaction.recipient?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      transaction.sender?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesFilter =
-      selectedFilter === "all" ||
-      transaction.type === selectedFilter ||
-      transaction.status === selectedFilter;
 
-    return matchesSearch && matchesFilter;
-  });
+  const filteredTransactions = transactions
+    ? transactions
+        .filter((transaction: Transaction) => {
+          if (!user) return false;
+          if (user.role === "user") {
+            return transaction.userId === user.id;
+          }
+          // Admins and superadmins see all
+          return true;
+        })
+        .filter((transaction: Transaction) => {
+          const matchesSearch =
+            transaction.description
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase()) ||
+            (transaction.recipient && transaction.recipient.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (transaction.sender && transaction.sender.toLowerCase().includes(searchTerm.toLowerCase()));
+
+          const matchesFilter =
+            selectedFilter === "all" ||
+            transaction.type === selectedFilter ||
+            transaction.status === selectedFilter;
+
+          return matchesSearch && matchesFilter;
+        })
+        .slice(0, limit) // Apply limit if provided
+    : [];
+
 
   const filters = [
     { value: "all", label: "All Transactions" },
@@ -216,12 +142,13 @@ const TransactionList: React.FC = () => {
     { value: "pending", label: "Pending" },
   ];
 
+
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-200">
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">
-            Recent Transactions
+            {limit ? `Recent Transactions (Last ${limit})` : 'Recent Transactions'}
           </h3>
           <div className="flex items-center space-x-2">
             <button
@@ -281,7 +208,7 @@ const TransactionList: React.FC = () => {
             </p>
           </div>
         ) : (
-          filteredTransactions.map((transaction) => {
+          filteredTransactions.map((transaction: Transaction) => {
             const IconComponent = getTransactionIcon(transaction.category);
             return (
               <div
@@ -356,17 +283,25 @@ const TransactionList: React.FC = () => {
 
       {/* View All Button */}
       <div className="p-4 border-t border-gray-200">
-        <button className="w-full py-2 text-[#7DC400] font-medium hover:bg-[#7DC400]/5 rounded-lg transition-colors">
+        <button
+          className="w-full py-2 text-[#7DC400] font-medium hover:bg-[#7DC400]/5 rounded-lg transition-colors"
+          onClick={() => navigate("/dashboard/transactions")}
+        >
           View All Transactions
         </button>
       </div>
 
       {/* Transaction Details Modal */}
-      <TransactionDetailsModal
-        transaction={selectedTransaction}
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-      />
+      {selectedTransaction && (
+        <TransactionDetailsModal
+          transaction={{
+            ...selectedTransaction,
+            time: selectedTransaction.time || new Date(selectedTransaction.date).toLocaleTimeString()
+          }}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+        />
+      )}
     </div>
   );
 };

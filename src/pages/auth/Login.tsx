@@ -12,6 +12,7 @@ const loginSchema = z.object({
     .string()
     .min(1, "Email is required")
     .email("Please enter a valid email address"),
+  password: z.string().min(1, "Password is required"),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -196,11 +197,7 @@ const Login: React.FC = () => {
                   )}
                 </button>
               </div>
-              {errors.password && (
-                <p className="mt-2 text-sm text-red-600">
-                  {errors.password.message}
-                </p>
-              )}
+           
             </div>
 
             {/* Remember Me & Forgot Password */}

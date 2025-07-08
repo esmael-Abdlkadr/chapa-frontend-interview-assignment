@@ -79,7 +79,6 @@ export const permissions: Record<string, string[]> = {
  * Use this for route protection and UI rendering decisions
  */
 export const routePermissions: Record<string, string[]> = {
-  "/dashboard": ["access_admin_dashboard"],
   "/dashboard/transactions": ["view_transactions", "view_own_transactions"],
   "/dashboard/users": ["view_users"],
   "/dashboard/send-money": ["make_payments", "process_payments"],

@@ -15,12 +15,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   requiredPermissions = [],
   requiredRoles = [],
-  redirectPath = "/login",
+  redirectPath = "/auth/login",
 }) => {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated , user} = useAuthStore();
   const { hasPermission, hasRole } = usePermissions();
   const location = useLocation();
-
+ console.log("user:", user, "isAuthenticated:", isAuthenticated, "location:", location);
   if (!isAuthenticated) {
     return <Navigate to={redirectPath} state={{ from: location }} replace />;
   }
@@ -33,11 +33,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Check roles if any are required
   const hasRequiredRole = requiredRoles.length === 0 || hasRole(requiredRoles);
 
+  console.log("ProtectedRoute checks:", hasRequiredRole)
+
   // If path is specified in routePermissions mapping, check those too
   const pathPermissions = routePermissions[location.pathname];
   const hasPathPermission =
     !pathPermissions ||
     pathPermissions.some((permission) => hasPermission(permission));
+    console.log("ProtectedRoute pathPermissions:", pathPermissions, "hasPathPermission:", hasPathPermission);
 
   // Allow access only if all checks pass
   if (hasRequiredPermission && hasRequiredRole && hasPathPermission) {

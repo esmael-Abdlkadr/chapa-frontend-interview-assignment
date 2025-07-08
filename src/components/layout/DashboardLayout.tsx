@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
-import { useLocation } from "react-router-dom";
 import {
   Home,
   Send,

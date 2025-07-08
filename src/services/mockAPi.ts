@@ -1,4 +1,3 @@
-
 const STORAGE_KEYS = {
   USERS: "chapa_users",
   ADMINS: "chapa_admins",
@@ -63,136 +62,204 @@ export interface SystemStats {
   lastUpdated: string;
 }
 
-// Generate mock data
-const generateMockUsers = (): User[] => {
-  const firstNames = [
-    "John",
-    "Sarah",
-    "Michael",
-    "Emma",
-    "David",
-    "Lisa",
-    "James",
-    "Anna",
-    "Robert",
-    "Maria",
-    "Ahmed",
-    "Fatima",
-    "Daniel",
-    "Zara",
-    "Samuel",
-    "Hanan",
-    "Yonas",
-    "Meron",
-    "Tadesse",
-    "Almaz",
-  ];
-  const lastNames = [
-    "Smith",
-    "Johnson",
-    "Williams",
-    "Brown",
-    "Jones",
-    "Garcia",
-    "Miller",
-    "Davis",
-    "Rodriguez",
-    "Martinez",
-    "Kebede",
-    "Tesfaye",
-    "Abebe",
-    "Haile",
-    "Getachew",
-    "Mulatu",
-    "Bekele",
-    "Girma",
-    "Worku",
-    "Mengistu",
-  ];
-  const avatars = ["👨‍💼", "👩‍💼", "👨‍💻", "👩‍💻", "👨‍🎓", "👩‍🎓", "👨‍🚀", "👩‍🚀", "👨‍🏫", "👩‍🏫"];
+// JSON Mock Data
+const mockUsersData: User[] = [
+  {
+    id: "user-1",
+    firstName: "John",
+    lastName: "Smith",
+    email: "john.smith@example.com",
+    phone: "+251911234567",
+    role: "user",
+    status: "active",
+    createdAt: "2024-01-15T08:30:00Z",
+    lastLogin: "2024-12-20T14:22:00Z",
+    walletBalance: 2500,
+    totalTransactions: 15,
+    isVerified: true,
+    avatar: ""
+  },
+  {
+    id: "user-2",
+    firstName: "Sarah",
+    lastName: "Johnson",
+    email: "sarah.johnson@example.com",
+    phone: "+251922345678",
+    role: "user",
+    status: "active",
+    createdAt: "2024-02-10T10:15:00Z",
+    lastLogin: "2024-12-19T16:45:00Z",
+    walletBalance: 1800,
+    totalTransactions: 8,
+    isVerified: true,
+    avatar: ""
+  },
+  {
+    id: "user-3",
+    firstName: "Michael",
+    lastName: "Williams",
+    email: "michael.williams@example.com",
+    phone: "+251933456789",
+    role: "user",
+    status: "active",
+    createdAt: "2024-03-05T12:00:00Z",
+    lastLogin: "2024-12-21T09:30:00Z",
+    walletBalance: 3200,
+    totalTransactions: 22,
+    isVerified: false,
+    avatar: ""
+  },
+  {
+    id: "user-4",
+    firstName: "Emma",
+    lastName: "Brown",
+    email: "emma.brown@example.com",
+    phone: "+251944567890",
+    role: "user",
+    status: "inactive",
+    createdAt: "2024-04-12T14:20:00Z",
+    lastLogin: "2024-11-15T11:10:00Z",
+    walletBalance: 950,
+    totalTransactions: 5,
+    isVerified: true,
+    avatar: ""
+  },
+  {
+    id: "user-5",
+    firstName: "David",
+    lastName: "Jones",
+    email: "david.jones@example.com",
+    phone: "+251955678901",
+    role: "user",
+    status: "active",
+    createdAt: "2024-05-18T16:45:00Z",
+    lastLogin: "2024-12-20T18:22:00Z",
+    walletBalance: 4100,
+    totalTransactions: 31,
+    isVerified: true,
+    avatar: ""
+  },
+  {
+    id: "user-6",
+    firstName: "Lisa",
+    lastName: "Garcia",
+    email: "lisa.garcia@example.com",
+    phone: "+251966789012",
+    role: "user",
+    status: "active",
+    createdAt: "2024-06-22T09:30:00Z",
+    lastLogin: "2024-12-21T12:15:00Z",
+    walletBalance: 2750,
+    totalTransactions: 18,
+    isVerified: true,
+    avatar: ""
+  },
+  {
+    id: "user-7",
+    firstName: "Ahmed",
+    lastName: "Kebede",
+    email: "ahmed.kebede@example.com",
+    phone: "+251977890123",
+    role: "user",
+    status: "active",
+    createdAt: "2024-07-10T11:20:00Z",
+    lastLogin: "2024-12-19T20:45:00Z",
+    walletBalance: 1600,
+    totalTransactions: 12,
+    isVerified: false,
+    avatar: ""
+  },
+  {
+    id: "user-8",
+    firstName: "Fatima",
+    lastName: "Tesfaye",
+    email: "fatima.tesfaye@example.com",
+    phone: "+251988901234",
+    role: "user",
+    status: "active",
+    createdAt: "2024-08-03T13:45:00Z",
+    lastLogin: "2024-12-21T07:30:00Z",
+    walletBalance: 3800,
+    totalTransactions: 26,
+    isVerified: true,
+    avatar: ""
+  }
+];
 
-  return Array.from({ length: 20 }, (_, i) => ({
-    id: `user-${i + 1}`,
-    firstName: firstNames[i],
-    lastName: lastNames[i],
-    email: `${firstNames[i].toLowerCase()}.${lastNames[
-      i
-    ].toLowerCase()}@example.com`,
-    phone: `+251${Math.floor(Math.random() * 900000000) + 900000000}`,
-    role: "user" as const,
-    status: Math.random() > 0.1 ? "active" : ("inactive" as const),
-    createdAt: new Date(
-      Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000
-    ).toISOString(),
-    lastLogin: new Date(
-      Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000
-    ).toISOString(),
-    walletBalance: Math.floor(Math.random() * 10000) + 500,
-    totalTransactions: Math.floor(Math.random() * 50) + 1,
-    isVerified: Math.random() > 0.2,
-    avatar: avatars[Math.floor(Math.random() * avatars.length)],
-  }));
+const generateMockUsers = (): User[] => {
+  return mockUsersData;
 };
 
+const mockAdminsData: Admin[] = [
+  {
+    id: "admin-1",
+    firstName: "Alex",
+    lastName: "Thompson",
+    email: "alex.thompson@chapa.com",
+    phone: "+251911111111",
+    role: "admin",
+    status: "active",
+    createdAt: "2024-01-01T08:00:00Z",
+    lastLogin: "2024-12-21T08:30:00Z",
+    permissions: ["user_management", "transaction_monitoring", "basic_analytics"],
+    avatar: ""
+  },
+  {
+    id: "admin-2",
+    firstName: "Priya",
+    lastName: "Patel",
+    email: "priya.patel@chapa.com",
+    phone: "+251922222222",
+    role: "admin",
+    status: "active",
+    createdAt: "2024-01-15T09:30:00Z",
+    lastLogin: "2024-12-20T14:45:00Z",
+    permissions: ["user_management", "transaction_monitoring", "basic_analytics"],
+    avatar: ""
+  },
+  {
+    id: "admin-3",
+    firstName: "Marcus",
+    lastName: "Johnson",
+    email: "marcus.johnson@chapa.com",
+    phone: "+251933333333",
+    role: "superadmin",
+    status: "active",
+    createdAt: "2024-01-01T00:00:00Z",
+    lastLogin: "2024-12-21T10:00:00Z",
+    permissions: ["all"],
+    avatar: ""
+  },
+  {
+    id: "admin-4",
+    firstName: "Sofia",
+    lastName: "Rodriguez",
+    email: "sofia.rodriguez@chapa.com",
+    phone: "+251944444444",
+    role: "admin",
+    status: "active",
+    createdAt: "2024-02-10T11:20:00Z",
+    lastLogin: "2024-12-19T16:30:00Z",
+    permissions: ["user_management", "transaction_monitoring", "basic_analytics"],
+    avatar: ""
+  },
+  {
+    id: "admin-5",
+    firstName: "Raj",
+    lastName: "Kumar",
+    email: "raj.kumar@chapa.com",
+    phone: "+251955555555",
+    role: "admin",
+    status: "active",
+    createdAt: "2024-03-05T13:15:00Z",
+    lastLogin: "2024-12-20T12:20:00Z",
+    permissions: ["user_management", "transaction_monitoring", "basic_analytics"],
+    avatar: ""
+  }
+];
+
 const generateMockAdmins = (): Admin[] => {
-  const admins = [
-    {
-      firstName: "Alex",
-      lastName: "Thompson",
-      email: "alex.thompson@chapa.com",
-      role: "admin" as const,
-    },
-    {
-      firstName: "Priya",
-      lastName: "Patel",
-      email: "priya.patel@chapa.com",
-      role: "admin" as const,
-    },
-    {
-      firstName: "Marcus",
-      lastName: "Johnson",
-      email: "marcus.johnson@chapa.com",
-      role: "admin" as const,
-    },
-    {
-      firstName: "Sofia",
-      lastName: "Rodriguez",
-      email: "sofia.rodriguez@chapa.com",
-      role: "admin" as const,
-    },
-    {
-      firstName: "Raj",
-      lastName: "Kumar",
-      email: "raj.kumar@chapa.com",
-      role: "admin" as const,
-    },
-    {
-      firstName: "Elena",
-      lastName: "Petrov",
-      email: "elena.petrov@chapa.com",
-      role: "superadmin" as const,
-    },
-  ];
-
-  const avatars = ["👨‍💼", "👩‍💼", "👨‍🔧", "👩‍🔧", "👨‍⚖️", "👩‍⚖️"];
-
-  return admins.map((admin, i) => ({
-    id: `admin-${i + 1}`,
-    ...admin,
-    phone: `+251${Math.floor(Math.random() * 900000000) + 900000000}`,
-    status: "active" as const,
-    createdAt: new Date(
-      Date.now() - Math.random() * 180 * 24 * 60 * 60 * 1000
-    ).toISOString(),
-    lastLogin: new Date(
-      Date.now() - Math.random() * 2 * 24 * 60 * 60 * 1000
-    ).toISOString(),
-    permissions:
-      admin.role === "superadmin"
-        ? ["all"]
-        : ["user_management", "transaction_monitoring", "basic_analytics"],
-    avatar: avatars[i],
-  }));
+  return mockAdminsData;
 };
 
 const generateMockTransactions = (): Transaction[] => {
@@ -405,6 +472,17 @@ export const mockAPI = {
     return new Promise((resolve) => {
       setTimeout(() => {
         resolve(getStorageData<Transaction[]>(STORAGE_KEYS.TRANSACTIONS, []));
+      }, 300);
+    });
+  },
+
+  // Get all accounts (users + admins combined)
+  getAllAccounts: (): Promise<(User | Admin)[]> => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const users = getStorageData<User[]>(STORAGE_KEYS.USERS, []);
+        const admins = getStorageData<Admin[]>(STORAGE_KEYS.ADMINS, []);
+        resolve([...users, ...admins]);
       }, 300);
     });
   },
