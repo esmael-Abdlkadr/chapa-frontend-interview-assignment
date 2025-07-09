@@ -20,8 +20,6 @@ const TransactionDetailsPage: React.FC = () => {
     const fetchTransactionDetails = async () => {
       try {
         setIsLoading(true);
-        // In a real app, you would fetch a specific transaction by ID
-        // For this mock, we'll filter from all transactions
         const response = await mockAPI.getTransactions();
         const foundTransaction = response.find((t) => t.id === id);
 
@@ -102,7 +100,7 @@ const TransactionDetailsPage: React.FC = () => {
 
   return (
     <div className="p-8">
-      {/* Header with Back Navigation */}
+      
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center">
           <button
@@ -149,7 +147,7 @@ const TransactionDetailsPage: React.FC = () => {
         }}
       />
 
-      {/* Detailed Transaction Information */}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Left Column - Transaction Information */}
         <TransactionInformationCard

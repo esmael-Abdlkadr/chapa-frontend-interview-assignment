@@ -20,7 +20,7 @@ const NotFound = () => {
   const [isFlipping, setIsFlipping] = useState(false);
   const [showEmoji, setShowEmoji] = useState("frown");
 
-  // Animation for the coin flipping effect
+
   useEffect(() => {
     const interval = setInterval(() => {
       if (Math.random() > 0.7) {
@@ -35,7 +35,7 @@ const NotFound = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Generate a random suggestion
+
   const suggestions = [
     "home page",
     "dashboard",
@@ -51,7 +51,6 @@ const NotFound = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 flex flex-col items-center justify-center p-4">
       <div className="max-w-3xl w-full">
-        {/* Main Content Container */}
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden relative">
           {/* Decorative Elements */}
           <div className="absolute top-0 left-0 w-full h-1 bg-[#7DC400]"></div>
@@ -91,7 +90,7 @@ const NotFound = () => {
                 </motion.div>
               </div>
 
-              {/* Text Content */}
+        
               <div className="md:w-1/2 md:pl-8">
                 <motion.h1
                   initial={{ opacity: 0 }}
@@ -207,7 +206,7 @@ const NotFound = () => {
           </div>
         </motion.div>
 
-        {/* Connection Status */}
+
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

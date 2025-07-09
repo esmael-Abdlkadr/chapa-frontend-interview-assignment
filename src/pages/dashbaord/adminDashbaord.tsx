@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   Users,
@@ -21,7 +21,7 @@ import TransactionList from "../../components/dashbaord/TransactionList";
 import { mockAPI, type User, type Transaction } from "../../services/mockAPi";
 import { toastService } from "../../services/toastService";
 
-const AdminDashboard: React.FC = () => {
+const AdminDashboard= () => {
   const [users, setUsers] = useState<User[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -156,7 +156,7 @@ const AdminDashboard: React.FC = () => {
     },
   ];
 
-  // Calculate overall stats
+
   const totalUsers = users.length;
   const activeUsers = users.filter((u) => u.status === "active").length;
   const totalRevenue = transactions
@@ -221,7 +221,7 @@ const AdminDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Content based on active tab */}
+   
           {activeTab === "overview" && (
             <>
               {/* Stats Grid */}

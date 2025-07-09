@@ -48,13 +48,10 @@ const Login= () => {
       await login(data.email, data.password);
 
       toastService.dismiss(loadingToast);
-
-      // Show success toast
       toastService.success("Successfully signed in!");
     } catch (error) {
       if (error instanceof Error) {
         setError("root", { message: error.message });
-        // Show error toast
         toastService.error(error.message);
       }
     }

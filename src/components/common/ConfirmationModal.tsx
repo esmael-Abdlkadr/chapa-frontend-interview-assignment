@@ -52,21 +52,20 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   const modalContent = (
     <div className="fixed inset-0 z-[9999] overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen px-4 py-6">
-        {/* Background overlay */}
+     
         <div
           className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
           onClick={onClose}
         />
 
-        {/* Modal content */}
         <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-auto p-6 z-[10000]">
           <div className="flex items-start">
-            {/* Icon */}
+
             <div className={`flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full ${currentStyle.iconBg} mr-4`}>
               <AlertTriangle className={`h-6 w-6 ${currentStyle.icon}`} />
             </div>
 
-            {/* Content */}
+
             <div className="flex-1">
               <h3 className="text-lg font-medium text-gray-900 mb-2">
                 {title}
@@ -75,7 +74,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                 {message}
               </p>
 
-              {/* Actions */}
+        
               <div className="flex gap-3 justify-end">
                 <button
                   type="button"

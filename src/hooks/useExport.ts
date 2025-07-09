@@ -32,7 +32,7 @@ export const useExport = (): UseExportReturn => {
         return;
       }
 
-      // Define CSV headers
+    
       const headers = [
         "Transaction ID",
         "Date",
@@ -49,8 +49,6 @@ export const useExport = (): UseExportReturn => {
         "Fee",
         "Balance",
       ];
-
-      // Convert transactions to CSV rows
       const csvRows = transactions.map((transaction) => [
         transaction.id,
         transaction.date,
@@ -68,12 +66,11 @@ export const useExport = (): UseExportReturn => {
         transaction.balance?.toString() || "",
       ]);
 
-      // Combine headers and rows
+  
       const csvContent = [headers, ...csvRows]
         .map((row) => row.map((field) => `"${field}"`).join(","))
         .join("\n");
 
-      // Create and download the file
       const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
       const link = document.createElement("a");
       const url = URL.createObjectURL(blob);
@@ -137,8 +134,6 @@ export const useExport = (): UseExportReturn => {
         toast.error("No transactions to export");
         return;
       }
-
-      // Create HTML content for PDF
       const htmlContent = `
         <!DOCTYPE html>
         <html>
@@ -197,7 +192,7 @@ export const useExport = (): UseExportReturn => {
         </html>
       `;
 
-      // Create and download HTML file (can be printed as PDF)
+
       const blob = new Blob([htmlContent], {
         type: "text/html;charset=utf-8;",
       });

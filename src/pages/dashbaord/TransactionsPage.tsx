@@ -51,7 +51,6 @@ const TransactionsPage: React.FC = () => {
       return true;
     })
     .filter((transaction) => {
-      // Filter by type or status
       if (selectedFilter !== "all") {
         if (selectedFilter === "income" || selectedFilter === "expense") {
           return transaction.type === selectedFilter;
@@ -99,7 +98,7 @@ const TransactionsPage: React.FC = () => {
     }
   };
 
-  // Handle transaction management (delete only)
+  
   const handleManageTransaction = (id: string, action: "delete") => {
     if (action === "delete") {
       setTransactionToDelete(id);

@@ -80,7 +80,7 @@ const UserDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Wallet Card */}
+
         <WalletCard />
 
         {/* Quick Actions */}
@@ -118,8 +118,6 @@ const UserDashboard: React.FC = () => {
             ))}
           </div>
         </div>
-
-        {/* Recent Transactions */}
         <TransactionList />
       </div>
     </DashboardLayout>

@@ -22,7 +22,7 @@ import ProtectedRoute from "./components/common/ProtectedRoute";
 import RequestPaymentPage from "./pages/dashbaord/requestPayment";
 import AnalyticsPage from "./pages/dashbaord/Analaytics";
 
-// Dashboard redirect component
+
 const DashboardRedirect: React.FC = () => {
   const { user } = useAuth();
 
@@ -30,7 +30,7 @@ const DashboardRedirect: React.FC = () => {
     return <Navigate to="/auth/login" replace />;
   }
 
-  // Redirect to appropriate dashboard based on role
+
   switch (user.role) {
     case "superadmin":
       return <Navigate to="/super-admin" replace />;
@@ -150,7 +150,6 @@ function App() {
             }
           />
 
-          {/* Transactions Routes - accessible by all authenticated users with appropriate permissions */}
           <Route
             path="/dashboard/transactions"
             element={
@@ -185,7 +184,6 @@ function App() {
       <Toaster
         position="top-right"
         toastOptions={{
-          // Default options
           duration: 4000,
           style: {
             background: "#fff",

@@ -6,7 +6,7 @@
  * - guest: access to public features only(lading page, registration, login)
  */
 
-// Permission structure by role
+
 export const permissions: Record<string, string[]> = {
   superadmin: [
     "view_transactions",
@@ -53,20 +53,17 @@ export const permissions: Record<string, string[]> = {
   ],
 
   user: [
-    // Limited Transaction Access
     "view_own_transactions",
 
-    // Account Management
     "update_own_profile",
     "manage_own_wallet",
 
-    // Payment Capabilities
+
     "make_payments",
     "request_refunds",
   ],
 
   guest: [
-    // Minimal access
     "view_landing_page",
     "register_account",
     "login",
@@ -98,10 +95,8 @@ export const canAccessRoute = (
   userPermissions: string[],
   route: string
 ): boolean => {
-  // If route has no permissions defined, default to allowing access
   if (!routePermissions[route]) return true;
 
-  // Check if user has at least one of the required permissions
   return routePermissions[route].some((permission) =>
     userPermissions.includes(permission)
   );

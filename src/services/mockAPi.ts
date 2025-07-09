@@ -87,7 +87,7 @@ export interface SystemStats {
   topPerformingRegions: string[];
 }
 
-// JSON Mock Data
+
 const mockUsersData: User[] = [
   {
     id: "user-1",
@@ -378,7 +378,7 @@ const setStorageData = <T>(key: string, data: T): void => {
   }
 };
 
-// Enhanced system stats calculation
+
 const calculateEnhancedStats = (): SystemStats => {
   const users = getStorageData<User[]>(STORAGE_KEYS.USERS, []);
   const admins = getStorageData<Admin[]>(STORAGE_KEYS.ADMINS, []);
@@ -448,7 +448,7 @@ const calculateEnhancedStats = (): SystemStats => {
   };
 };
 
-// Initialize data if not exists
+
 const initializeData = () => {
   if (!localStorage.getItem(STORAGE_KEYS.USERS)) {
     setStorageData(STORAGE_KEYS.USERS, generateMockUsers());
@@ -468,9 +468,8 @@ const initializeData = () => {
   }
 };
 
-// API functions
+
 export const mockAPI = {
-  // Initialize data
   init: initializeData,
 
   // Users
@@ -500,7 +499,7 @@ export const mockAPI = {
     });
   },
 
-  // Enhanced admin management
+
   getAdmins: (): Promise<Admin[]> => {
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -515,7 +514,6 @@ export const mockAPI = {
         try {
           const admins = getStorageData<Admin[]>(STORAGE_KEYS.ADMINS, []);
 
-          // Check if email already exists
           const existingAdmin = admins.find((a) => a.email === admin.email);
           if (existingAdmin) {
             reject(new Error("Admin with this email already exists"));
@@ -551,8 +549,6 @@ export const mockAPI = {
             reject(new Error("Admin not found"));
             return;
           }
-
-          // Prevent removal of superadmin
           if (adminToRemove.role === "superadmin") {
             reject(new Error("Cannot remove super admin"));
             return;
@@ -579,8 +575,6 @@ export const mockAPI = {
             reject(new Error("Admin not found"));
             return;
           }
-
-          // Prevent role change for superadmin
           const currentAdmin = admins[adminIndex];
           if (
             currentAdmin.role === "superadmin" &&
@@ -601,7 +595,7 @@ export const mockAPI = {
     });
   },
 
-  // Transactions
+
   getTransactions: (): Promise<Transaction[]> => {
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -610,7 +604,6 @@ export const mockAPI = {
     });
   },
 
-  // Get all accounts (users + admins combined)
   getAllAccounts: (): Promise<(User | Admin)[]> => {
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -621,7 +614,6 @@ export const mockAPI = {
     });
   },
 
-  // Enhanced System Stats
   getSystemStats: (): Promise<SystemStats> => {
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -632,7 +624,6 @@ export const mockAPI = {
     });
   },
 
-  // New methods for advanced features
   getSystemHealth: (): Promise<SystemStats["systemHealth"]> => {
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -659,11 +650,11 @@ export const mockAPI = {
         const stats = calculateEnhancedStats();
 
         resolve({ users, admins, transactions, stats });
-      }, 1000); // Simulate longer processing time for export
+      }, 100); 
     });
   },
 
-  // Bulk operations for admin efficiency
+
   bulkUpdateUsers: (
     updates: { id: string; changes: Partial<User> }[]
   ): Promise<User[]> => {

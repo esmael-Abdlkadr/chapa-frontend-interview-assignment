@@ -133,7 +133,7 @@ const SystemStat: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Real-time Stats Cards */}
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Total Revenue"
@@ -169,7 +169,7 @@ const SystemStat: React.FC = () => {
         />
       </div>
 
-      {/* Advanced Analytics Chart */}
+      {/*  Analytics Chart */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold text-gray-900">
@@ -188,7 +188,7 @@ const SystemStat: React.FC = () => {
           </div>
         </div>
 
-        {/* Simple Chart Visualization */}
+        {/* Chart Visualization */}
         <div className="grid grid-cols-7 gap-2 mb-4">
           {[...Array(7)].map((_, i) => {
             const height = Math.random() * 100 + 20;
@@ -253,7 +253,7 @@ const SystemStat: React.FC = () => {
         </div>
       </div>
 
-      {/* Creative Mind-Blowing User Table */}
+      {/* User Management */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between mb-4">
@@ -295,7 +295,7 @@ const SystemStat: React.FC = () => {
           </div>
         </div>
 
-        {/* Modern Table */}
+
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -441,7 +441,7 @@ const SystemStat: React.FC = () => {
   );
 };
 
-// Stat Card Component
+
 const StatCard: React.FC<{
   title: string;
   value: string;

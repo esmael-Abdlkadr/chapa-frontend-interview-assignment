@@ -1,9 +1,9 @@
-import React from "react";
+
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import UserManagment from "../../components/dashbaord/UserManagment";
 
 
-const AdminManagementPage: React.FC = () => {
+const AdminManagementPage = () => {
 
   return (
     <DashboardLayout>

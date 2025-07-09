@@ -215,7 +215,7 @@ const SendMoneyForm = () => {
     toastService.success("Transaction ID copied to clipboard");
   };
 
-  // Success Screen
+
   if (step === "success") {
     return (
       <div className="w-full max-w-sm mx-auto bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
@@ -280,7 +280,7 @@ const SendMoneyForm = () => {
     );
   }
 
-  // Processing Screen
+
   if (step === "processing") {
     return (
       <div className="w-full max-w-sm mx-auto bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
@@ -330,7 +330,7 @@ const SendMoneyForm = () => {
     );
   }
 
-  // Confirmation Screen
+
   if (step === "confirm") {
     return (
       <div className="w-full max-w-sm mx-auto bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">

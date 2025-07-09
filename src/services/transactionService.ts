@@ -33,7 +33,7 @@ class TransactionService {
 
 
 
-  // Get transactions from localStorage
+
   private getStoredTransactions(userId: string): Transaction[] {
     try {
       const stored = localStorage.getItem(this.getStorageKey(userId));
@@ -44,7 +44,7 @@ class TransactionService {
     }
   }
 
-  // Save transactions to localStorage
+
   private saveTransactions(transactions: Transaction[], userId: string): void {
     try {
       localStorage.setItem(
@@ -56,19 +56,16 @@ class TransactionService {
     }
   }
 
-  // Get all transactions with optional filters (combines mock data + stored data)
+
   async getTransactions(
     filters?: TransactionFilters,
     userId?: string
   ): Promise<Transaction[]> {
     try {
-      // Get mock transactions
       const mockTransactions = await mockAPI.getTransactions();
 
-      // Get stored transactions
       const storedTransactions = this.getStoredTransactions(userId!);
 
-      // Combine and sort by date (newest first)
       let allTransactions = [...mockTransactions, ...storedTransactions].sort(
         (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
       );
@@ -84,7 +81,6 @@ class TransactionService {
     }
   }
 
-  // Get a single transaction by ID
   async getTransactionById(
     id: string,
     userId?: string
@@ -120,7 +116,7 @@ class TransactionService {
         fee: data.fee || 0,
       };
 
-      // Get existing stored transactions
+
       const storedTransactions = this.getStoredTransactions(userId!);
       storedTransactions.unshift(newTransaction);
 
@@ -168,7 +164,7 @@ class TransactionService {
     }
   }
 
-  // Delete a transaction
+
   async deleteTransaction(id: string, userId?: string): Promise<boolean> {
     try {
       const storedTransactions = this.getStoredTransactions(userId!);
@@ -192,7 +188,7 @@ class TransactionService {
     }
   }
 
-  // Get transaction statistics
+
   async getTransactionStats(userId?: string): Promise<{
     totalIncome: number;
     totalExpenses: number;
@@ -231,8 +227,6 @@ class TransactionService {
       throw new Error("Failed to get transaction statistics");
     }
   }
-
-  // Clear all stored transactions (useful for testing)
   clearStoredTransactions(): void {
     try {
       localStorage.clear();
@@ -241,7 +235,7 @@ class TransactionService {
     }
   }
 
-  // Private helper methods
+
   private applyFilters(
     transactions: Transaction[],
     filters: TransactionFilters
@@ -251,25 +245,23 @@ class TransactionService {
         return false;
       }
 
-      // Filter by status
+
       if (filters.status && transaction.status !== filters.status) {
         return false;
       }
 
-      // Filter by category
+
       if (filters.category && transaction.category !== filters.category) {
         return false;
       }
 
-      // Filter by date range
+
       if (filters.dateFrom && transaction.date < filters.dateFrom) {
         return false;
       }
       if (filters.dateTo && transaction.date > filters.dateTo) {
         return false;
       }
-
-      // Filter by search term
       if (filters.search) {
         const searchTerm = filters.search.toLowerCase();
         const searchableFields = [

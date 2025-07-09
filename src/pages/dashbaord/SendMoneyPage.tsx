@@ -129,7 +129,6 @@ const SendMoneyForm = () => {
     toastService.success("Transaction ID copied to clipboard");
   };
 
-  // Success Screen
   if (step === "success") {
     return (
       <DashboardLayout>
@@ -218,7 +217,6 @@ const SendMoneyForm = () => {
     );
   }
 
-  // Processing Screen
   if (step === "processing") {
     return (
       <DashboardLayout>
@@ -282,7 +280,7 @@ const SendMoneyForm = () => {
     );
   }
 
-  // Confirmation Screen
+
   if (step === "confirm") {
     return (
       <DashboardLayout>
@@ -410,7 +408,9 @@ const SendMoneyForm = () => {
               </div>
             </div>
 
-            {/* Main Form Cards */}
+  
+
+  
             <div className="md:col-span-2">
               <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Form Cards Container */}

@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-// User profile data structure
+
 export interface UserProfile {
   userId: string;
   personalInfo: {
@@ -321,7 +321,7 @@ export const useUserStore = create<UserState>()(
   )
 );
 
-// Helper functions to work with user profiles
+
 export const getUserProfileById = (userId: string): UserProfile | null => {
   return useUserStore.getState().getUserProfile(userId);
 };

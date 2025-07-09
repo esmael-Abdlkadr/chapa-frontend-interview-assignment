@@ -39,7 +39,7 @@ const SuperAdminDashboard: React.FC = () => {
 
   useEffect(() => {
     loadDashboardData();
-    // Set up real-time updates every 30 seconds
+    //  real-time updates every 30 seconds
     const interval = setInterval(loadDashboardData, 30000);
     return () => clearInterval(interval);
   }, []);
@@ -83,17 +83,7 @@ const SuperAdminDashboard: React.FC = () => {
           <p className="text-gray-600">
             You don't have permission to access this page.
           </p>
-          {/* Debug info - remove in production */}
-          <div className="mt-4 p-4 bg-gray-100 rounded-lg text-left">
-            <p className="text-sm text-gray-700">Debug Info:</p>
-            <p className="text-xs text-gray-600">
-              User: {user ? "Logged in" : "Not logged in"}
-            </p>
-            <p className="text-xs text-gray-600">
-              Role: {user?.role || "No role"}
-            </p>
-            <p className="text-xs text-gray-600">Expected: superadmin</p>
-          </div>
+    
         </div>
       </div>
     );
@@ -108,7 +98,7 @@ const SuperAdminDashboard: React.FC = () => {
 
   const renderOverview = () => (
     <div className="space-y-8">
-      {/* Enhanced Stats Grid */}
+      {/*  Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Total Users"
@@ -358,7 +348,7 @@ const SuperAdminDashboard: React.FC = () => {
     <DashboardLayout>
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 py-8">
-          {/* Enhanced Header */}
+          {/*  Header */}
           <div className="mb-8">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
@@ -427,7 +417,7 @@ const SuperAdminDashboard: React.FC = () => {
   );
 };
 
-// Enhanced Components
+
 const StatCard: React.FC<{
   title: string;
   value: string;
@@ -555,7 +545,7 @@ const QuickActionCard: React.FC<{
   </button>
 );
 
-// Placeholder components for different sections
+
 const AdvancedAnalytics: React.FC<{ systemStats: SystemStats | null }> = ({
   systemStats,
 }) => {

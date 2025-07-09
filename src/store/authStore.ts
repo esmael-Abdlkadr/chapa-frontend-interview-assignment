@@ -173,10 +173,8 @@ export const useAuthStore = create<AuthState>()(
             );
           }
 
-          // Simulate API call delay
+      
           await new Promise((resolve) => setTimeout(resolve, 1500));
-
-          // Check if user already exists
           const existingUser = mockUsers.find(
             (u) => u.email.toLowerCase() === userData.email.toLowerCase()
           );
@@ -185,19 +183,19 @@ export const useAuthStore = create<AuthState>()(
             throw new Error("User with this email already exists");
           }
 
-          // Create new user
+          
           const newUser: User = {
             id: `user-${Date.now()}`,
             email: userData.email,
             firstName: userData.firstName,
             lastName: userData.lastName,
-            role: "user", // Force role to user for public registration
+            role: "user", 
             avatar: "👤",
             createdAt: new Date().toISOString(),
             lastLogin: new Date().toISOString(),
             isActive: true,
             transactions: [],
-            // No createdBy for self-registered users
+      
           };
 
           mockUsers.push(newUser);
@@ -224,8 +222,6 @@ export const useAuthStore = create<AuthState>()(
         if (!currentUser) {
           throw new Error("You must be logged in to create users");
         }
-
-        // Permission checks
         if (userData.role === "superadmin") {
           throw new Error("SuperAdmin accounts cannot be created");
         }
@@ -243,7 +239,6 @@ export const useAuthStore = create<AuthState>()(
           );
         }
 
-        // Check if user already exists
         const existingUser = mockUsers.find(
           (u) => u.email.toLowerCase() === userData.email.toLowerCase()
         );
@@ -252,7 +247,7 @@ export const useAuthStore = create<AuthState>()(
           throw new Error("User with this email already exists");
         }
 
-        // Create new user
+    
         const newUser: User = {
           id: `${userData.role.toLowerCase()}-${Date.now()}`,
           email: userData.email,
@@ -266,7 +261,7 @@ export const useAuthStore = create<AuthState>()(
           transactions: [],
         };
 
-        // Add to mock users
+        
         mockUsers.push(newUser);
 
         return newUser;
@@ -294,16 +289,12 @@ export const useAuthStore = create<AuthState>()(
         if (!currentUser) {
           throw new Error("You must be logged in to add transactions");
         }
-
-        // Create new transaction
         const newTransaction: Transaction = {
           id: `txn-${Date.now()}`,
           ...transaction,
           date: new Date().toISOString(),
           status: "pending",
         };
-
-        // Update user transactions
         const updatedTransactions = [
           ...currentUser.transactions,
           newTransaction,
@@ -324,10 +315,8 @@ export const useAuthStore = create<AuthState>()(
           false,
         );
 
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1000));
 
-        // Optionally, you can update the transaction status to 'completed' after some time
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         set(
           (state) => {
             const user = state.user;
@@ -384,9 +373,9 @@ export const useAuthStore = create<AuthState>()(
   )
 );
 
-// Helper function to get all users (for admin panels)
+
 export const getAllUsers = () => mockUsers;
 
-// Helper function to get users created by a specific user
+
 export const getUsersCreatedBy = (createdById: string) =>
   mockUsers.filter((user) => user.createdBy === createdById);

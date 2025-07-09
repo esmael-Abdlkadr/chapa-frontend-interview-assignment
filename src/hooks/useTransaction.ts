@@ -39,7 +39,7 @@ const useTransaction = (): UseTransactionReturn => {
       const data = await transactionService.getTransactions(filters);
       setTransactions(data);
       
-      // Fetch stats as well
+  
       const statsData = await transactionService.getTransactionStats();
       setStats(statsData);
     } catch (err) {
@@ -57,8 +57,7 @@ const useTransaction = (): UseTransactionReturn => {
   const createTransaction = useCallback(async (data: CreateTransactionData): Promise<Transaction> => {
     try {
       const newTransaction = await transactionService.createTransaction(data);
-      
-      // Refresh transactions after creating
+
       await fetchTransactions();
       
       return newTransaction;
@@ -73,7 +72,6 @@ const useTransaction = (): UseTransactionReturn => {
     try {
       const updatedTransaction = await transactionService.updateTransaction(data);
       
-      // Update the transaction in the local state
       setTransactions(prev => 
         prev.map(transaction => 
           transaction.id === data.id ? updatedTransaction : transaction
@@ -93,10 +91,9 @@ const useTransaction = (): UseTransactionReturn => {
       const success = await transactionService.deleteTransaction(id);
       
       if (success) {
-        // Remove the transaction from local state
         setTransactions(prev => prev.filter(transaction => transaction.id !== id));
         
-        // Refresh stats
+
         const statsData = await transactionService.getTransactionStats();
         setStats(statsData);
       }
