@@ -75,7 +75,7 @@ A modern, feature-rich financial dashboard application built with React, TypeScr
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/esmael-Abdlkadr/chapa-frontend-interview-assignment
    cd chapa-frontend-interview-assignment
    ```
 
@@ -257,26 +257,7 @@ src/
 4. View comprehensive analytics
 5. Control global settings
 
-## 🚀 Deployment
 
-### Build Optimization
-- **Code Splitting**: Automatic bundle optimization
-- **Asset Optimization**: Image and CSS minification
-- **Tree Shaking**: Unused code elimination
-- **Modern Browser Support**: ES6+ features
-
-### Environment Configuration
-- **Development**: Hot reloading, debugging tools
-- **Production**: Optimized builds, error tracking
-- **Staging**: Testing environment configuration
-
-## 🤝 Contributing
-
-This project demonstrates modern React development practices and is ready for:
-- Feature additions
-- Performance improvements
-- UI/UX enhancements
-- Test coverage expansion
 
 ## 📞 Support
 
@@ -284,6 +265,6 @@ For questions about implementation details or feature explanations, please refer
 
 ---
 
-**Built with ❤️ using React, TypeScript, and Tailwind CSS**
+**Built with ❤️ By Esmael**
 
 *This project showcases advanced frontend development skills including state management, component architecture, responsive design, and modern development practices.*
