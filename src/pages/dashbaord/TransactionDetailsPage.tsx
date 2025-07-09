@@ -1,37 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Download, Share2, AlertCircle } from "lucide-react";
-import { mockAPI } from "../../services/mockAPi";
+import { mockAPI, type Transaction } from "../../services/mockAPi";
 import { toastService } from "../../services/toastService";
-import TransactionHeader from "../../components/dashbaord/transaction/TransactionHeader";
+import PageHeader from "../../components/common/PageHeader";
 import TransactionSummaryCard from "../../components/dashbaord/transaction/TransactionSummaryCard";
 import TransactionInformationCard from "../../components/dashbaord/transaction/TransactionInformationCard";
 import ParticipantInformationCard from "../../components/dashbaord/transaction/ParticipantInformationCard";
 import TransactionTimeline from "../../components/dashbaord/transaction/TransactionTimeline";
-
-// Define transaction type
-interface Transaction {
-  id: string;
-  date: string;
-  time: string;
-  amount: number;
-  type: string;
-  description: string;
-  sender?: string;
-  recipient?: string;
-  status: string;
-  method: string;
-  category: string;
-  transactionFee?: number;
-  reference?: string;
-  notes?: string;
-  paymentDetails?: {
-    cardNumber?: string;
-    cardType?: string;
-    bankName?: string;
-    accountNumber?: string;
-  };
-}
 
 const TransactionDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -54,7 +30,7 @@ const TransactionDetailsPage: React.FC = () => {
         } else {
           setError("Transaction not found");
         }
-      } catch (err) {
+      } catch {
         setError("Failed to load transaction details");
       } finally {
         setIsLoading(false);
@@ -136,7 +112,7 @@ const TransactionDetailsPage: React.FC = () => {
             <ArrowLeft className="w-5 h-5 text-gray-700" />
           </button>
           <div>
-            <TransactionHeader
+            <PageHeader
               title="Transaction Details"
               subtitle="View complete information about this transaction"
             />
@@ -161,9 +137,12 @@ const TransactionDetailsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Transaction Summary Card */}
+      {      /* Transaction Summary Card */}
       <TransactionSummaryCard
-        transaction={transaction}
+        transaction={{
+          ...transaction,
+          time: new Date(transaction.date).toLocaleTimeString(),
+        }}
         formatCurrency={(amount) => `ETB ${amount.toFixed(2)}`}
         getTransactionIcon={(type) => {
           return () => <span>{type === "deposit" ? "💰" : "💸"}</span>;
@@ -183,8 +162,17 @@ const TransactionDetailsPage: React.FC = () => {
 
         {/* Right Column - Participant Information and Timeline */}
         <div className="space-y-6">
-          <ParticipantInformationCard transaction={transaction} />
-          <TransactionTimeline transaction={transaction} />
+          <ParticipantInformationCard 
+            transaction={{
+              ...transaction,
+              time: new Date(transaction.date).toLocaleTimeString(),
+            }} 
+          />
+          <TransactionTimeline 
+            date={transaction.date}
+            time={new Date(transaction.date).toLocaleTimeString()}
+            status={transaction.status}
+          />
         </div>
       </div>
     </div>

@@ -8,7 +8,6 @@ import {
   Copy,
   Download,
   ArrowDownLeft,
-  ArrowUpRight,
   Coffee,
   ShoppingBag,
   Zap,
@@ -20,23 +19,7 @@ import {
   Phone,
   MapPin,
 } from "lucide-react";
-
-interface Transaction {
-  id: string;
-  type: "income" | "expense";
-  amount: number;
-  description: string;
-  date: string;
-  time: string;
-  status: "completed" | "pending" | "failed";
-  category: string;
-  method: string;
-  recipient?: string;
-  sender?: string;
-  reference?: string;
-  fee?: number;
-  balance?: number;
-}
+import type { Transaction } from "../../services/mockAPi";
 
 interface TransactionDetailsModalProps {
   transaction: Transaction | null;
@@ -208,7 +191,10 @@ const TransactionDetailsModal: React.FC<TransactionDetailsModalProps> = ({
                   month: "long",
                   day: "numeric",
                 })}{" "}
-                at {transaction.time}
+                at {new Date(transaction.date).toLocaleTimeString("en-ET", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
               </span>
             </div>
 
@@ -261,15 +247,6 @@ const TransactionDetailsModal: React.FC<TransactionDetailsModalProps> = ({
                     <Copy className="w-4 h-4" />
                   </button>
                 </div>
-              </div>
-            )}
-
-            {transaction.balance && (
-              <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-                <span className="text-sm text-gray-500">Balance After</span>
-                <span className="text-sm font-medium text-gray-900">
-                  {formatCurrency(transaction.balance)}
-                </span>
               </div>
             )}
           </div>

@@ -100,39 +100,143 @@ const TransactionList: React.FC<TransactionListProps> = ({ limit }) => {
     }
   };
 
-  const filteredTransactions = transactions
-    ? transactions
-        .filter((transaction: Transaction) => {
-          if (!user) return false;
-          if (user.role === "user") {
-            return transaction.userId === user.id;
-          }
-          // Admins and superadmins see all
-          return true;
-        })
-        .filter((transaction: Transaction) => {
-          const matchesSearch =
-            transaction.description
+  // Mock transactions  fro user
+  const mockTransactions: Transaction[] = [
+    {
+      id: "mock-1",
+      userId: user?.id || "",
+      amount: 2500.00,
+      type: "income",
+      status: "completed",
+      description: "Salary Payment",
+      category: "income",
+      method: "bank_transfer",
+      recipient: "Your Account",
+      sender: "ABC Company Ltd",
+      date: new Date().toISOString(),
+      time: "09:30 AM",
+      reference: "SAL001",
+      fee: 0,
+    },
+    {
+      id: "mock-2",
+      userId: user?.id || "",
+      amount: 450.50,
+      type: "expense",
+      status: "completed",
+      description: "Grocery Shopping",
+      category: "shopping",
+      method: "chapa_wallet",
+      recipient: "SuperMarket ABC",
+      sender: "Your Account",
+      date: new Date(Date.now() - 86400000).toISOString(), 
+      time: "02:15 PM",
+      reference: "GRC002",
+      fee: 5.50,
+    },
+    {
+      id: "mock-3",
+      userId: user?.id || "",
+      amount: 150.00,
+      type: "expense",
+      status: "completed",
+      description: "Mobile Top-up",
+      category: "mobile",
+      method: "mobile_money",
+      recipient: "Ethio Telecom",
+      sender: "Your Account",
+      date: new Date(Date.now() - 172800000).toISOString(), 
+      time: "11:45 AM",
+      reference: "MOB003",
+      fee: 2.00,
+    },
+    {
+      id: "mock-4",
+      userId: user?.id || "",
+      amount: 800.00,
+      type: "expense",
+      status: "pending",
+      description: "Electricity Bill",
+      category: "utilities",
+      method: "bank_transfer",
+      recipient: "Ethiopian Electric Utility",
+      sender: "Your Account",
+      date: new Date(Date.now() - 259200000).toISOString(), 
+      time: "04:20 PM",
+      reference: "ELC004",
+      fee: 10.00,
+    },
+    {
+      id: "mock-5",
+      userId: user?.id || "",
+      amount: 1200.00,
+      type: "income",
+      status: "completed",
+      description: "Freelance Payment",
+      category: "income",
+      method: "chapa_wallet",
+      recipient: "Your Account",
+      sender: "Client XYZ",
+      date: new Date(Date.now() - 345600000).toISOString(), 
+      time: "10:00 AM",
+      reference: "FRL005",
+      fee: 0,
+    },
+    {
+      id: "mock-6",
+      userId: user?.id || "",
+      amount: 75.00,
+      type: "expense",
+      status: "failed",
+      description: "Coffee Shop",
+      category: "food",
+      method: "mobile_money",
+      recipient: "Tomoca Coffee",
+      sender: "Your Account",
+      date: new Date(Date.now() - 432000000).toISOString(),
+      time: "08:30 AM",
+      reference: "COF006",
+      fee: 1.50,
+    },
+  ];
+
+  const filteredTransactions = (() => {
+    let transactionsToFilter: Transaction[] = [];
+
+    if (user?.role === "user") {
+      const userTransactions = transactions?.filter((transaction: Transaction) => 
+        transaction.userId === user.id
+      ) || [];
+      
+      transactionsToFilter = userTransactions.length > 0 ? userTransactions : mockTransactions;
+    } else {
+      transactionsToFilter = transactions || [];
+    }
+
+    return transactionsToFilter
+      .filter((transaction: Transaction) => {
+        const matchesSearch =
+          transaction.description
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          (transaction.recipient &&
+            transaction.recipient
               .toLowerCase()
-              .includes(searchTerm.toLowerCase()) ||
-            (transaction.recipient &&
-              transaction.recipient
-                .toLowerCase()
-                .includes(searchTerm.toLowerCase())) ||
-            (transaction.sender &&
-              transaction.sender
-                .toLowerCase()
-                .includes(searchTerm.toLowerCase()));
+              .includes(searchTerm.toLowerCase())) ||
+          (transaction.sender &&
+            transaction.sender
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase()));
 
-          const matchesFilter =
-            selectedFilter === "all" ||
-            transaction.type === selectedFilter ||
-            transaction.status === selectedFilter;
+        const matchesFilter =
+          selectedFilter === "all" ||
+          transaction.type === selectedFilter ||
+          transaction.status === selectedFilter;
 
-          return matchesSearch && matchesFilter;
-        })
-        .slice(0, limit) // Apply limit if provided
-    : [];
+        return matchesSearch && matchesFilter;
+      })
+      .slice(0, limit); 
+  })();
 
   const filters = [
     { value: "all", label: "All Transactions" },
@@ -297,9 +401,6 @@ const TransactionList: React.FC<TransactionListProps> = ({ limit }) => {
         <TransactionDetailsModal
           transaction={{
             ...selectedTransaction,
-            time:
-              selectedTransaction.time ||
-              new Date(selectedTransaction.date).toLocaleTimeString(),
           }}
           isOpen={isModalOpen}
           onClose={handleCloseModal}

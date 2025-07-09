@@ -1,23 +1,19 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import type { Transaction } from "../../../services/mockAPi";
 
 interface TransactionRowProps {
-  transaction: {
-    id: string;
-    date: string;
-    amount: number;
-    status: "completed" | "pending" | "failed";
-    type: string;
-    recipient: {
-      name: string;
-      email?: string;
-    };
-  };
+  transaction: Transaction;
+  onViewDetails: (id: string) => void;
+  onManageTransaction?: (id: string, action: "delete") => void;
+  hasManagePermission: boolean;
 }
 
-const TransactionRow: React.FC<TransactionRowProps> = ({ transaction }) => {
-  const navigate = useNavigate();
-  console.log("transaction", transaction);
+const TransactionRow: React.FC<TransactionRowProps> = ({ 
+  transaction,
+  onViewDetails,
+  onManageTransaction,
+  hasManagePermission
+}) => {
 
   const statusColors = {
     completed: "text-green-600 bg-green-100",
@@ -26,7 +22,14 @@ const TransactionRow: React.FC<TransactionRowProps> = ({ transaction }) => {
   };
 
   const handleRowClick = () => {
-    navigate(`/dashboard/transactions/${transaction.id}`);
+    onViewDetails(transaction.id);
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onManageTransaction) {
+      onManageTransaction(transaction.id, "delete");
+    }
   };
 
   return (
@@ -61,17 +64,23 @@ const TransactionRow: React.FC<TransactionRowProps> = ({ transaction }) => {
       </td>
 
       <td className="py-4 px-6 whitespace-nowrap">
-        <div className="font-medium">{transaction?.recipient?.name}</div>
-        {transaction?.recipient?.email && (
-          <div className="text-sm text-gray-500">
-            {transaction?.recipient?.email}
-          </div>
-        )}
+        <div className="font-medium">{transaction?.recipient || 'N/A'}</div>
       </td>
 
       <td className="py-4 px-6 whitespace-nowrap text-gray-600">
         {transaction.type}
       </td>
+
+      {hasManagePermission && (
+        <td className="py-4 px-6 whitespace-nowrap text-right text-sm font-medium">
+          <button
+            onClick={handleDeleteClick}
+            className="text-red-600 hover:text-red-900"
+          >
+            Delete
+          </button>
+        </td>
+      )}
     </tr>
   );
 };

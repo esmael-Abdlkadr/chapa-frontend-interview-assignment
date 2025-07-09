@@ -1,10 +1,9 @@
 /**
- *
  * Roles:
  * - superadmin: Has full access to all features
  * - admin: Has most administrative capabilities except managing other admins
  * - user: Basic user with limited permissions
- * - guest: Unauthenticated user with minimal access
+ * - guest: access to public features only(lading page, registration, login)
  */
 
 // Permission structure by role
@@ -74,10 +73,7 @@ export const permissions: Record<string, string[]> = {
   ],
 };
 
-/**
- * Maps frontend routes to required permissions
- * Use this for route protection and UI rendering decisions
- */
+
 export const routePermissions: Record<string, string[]> = {
   "/dashboard/transactions": ["view_transactions", "view_own_transactions"],
   "/dashboard/users": ["view_users"],
@@ -85,11 +81,6 @@ export const routePermissions: Record<string, string[]> = {
   "/dashboard/admin-management": ["manage_admins"],
 };
 
-/**
- * Get redirect path based on user role
- * @param role - The user's role
- * @returns The appropriate dashboard path for the user's role
- */
 export const getDashboardPathByRole = (role: string): string => {
   switch (role) {
     case "superadmin":
@@ -103,12 +94,6 @@ export const getDashboardPathByRole = (role: string): string => {
   }
 };
 
-/**
- * Check if a user has permission to access a specific route
- * @param userPermissions - Array of permissions the user has
- * @param route - The route to check access for
- * @returns Whether the user can access the route
- */
 export const canAccessRoute = (
   userPermissions: string[],
   route: string

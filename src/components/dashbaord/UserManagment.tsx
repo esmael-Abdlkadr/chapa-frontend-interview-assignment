@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { mockAPI, type Admin, type User } from "../../services/mockAPi";
 import { toastService } from "../../services/toastService";
 import {
@@ -37,6 +37,7 @@ const UserManagment: React.FC = () => {
   const [sortField, setSortField] = useState<string>("lastName");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -172,6 +173,7 @@ const UserManagment: React.FC = () => {
   };
 
   const handleUpdateAdmin = async (id: string, updates: Partial<Admin>) => {
+    console.log("Updating admin with ID:", id, "Updates:", updates);
     const loadingId = toastService.loading("Updating admin...");
 
     try {
@@ -182,6 +184,7 @@ const UserManagment: React.FC = () => {
         prev.map((account) => (account.id === id ? updatedAdmin : account))
       );
       setEditingAdmin(null);
+      resetForm(); // Reset form after successful update
 
       // Show success toast
       toastService.dismiss(loadingId);
@@ -269,6 +272,11 @@ const UserManagment: React.FC = () => {
     });
   };
 
+  const handleCloseEditModal = () => {
+    setEditingAdmin(null);
+    resetForm();
+  };
+
   const handleSort = (field: string) => {
     if (sortField === field) {
       // Toggle direction if clicking the same field
@@ -327,10 +335,12 @@ const UserManagment: React.FC = () => {
     }
   };
 
-  // Close dropdown when clicking outside
+  // Fixed click outside handler
   useEffect(() => {
-    const handleClickOutside = () => {
-      setActiveDropdown(null);
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setActiveDropdown(null);
+      }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
@@ -560,31 +570,49 @@ const UserManagment: React.FC = () => {
 
                         {activeDropdown === account.id && (canEdit(account) || canToggleStatus(account) || ('permissions' in account && canDelete(account))) && (
                           <div
+                            ref={dropdownRef}
                             className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10"
-                            onClick={(e) => e.stopPropagation()}
                           >
                             <div className="py-1" role="menu">
                               {canToggleStatus(account) && (
                                 <button
-                                  onClick={() => handleToggleStatus(account)}
-                                  className={`flex items-center w-full px-4 py-2 text-sm ${
+                                  onClick={() => {
+                                    handleToggleStatus(account);
+                                  }}
+                                  className={`flex items-center w-full px-4 py-2 text-sm transition-colors ${
                                     account.status === "active"
                                       ? "text-orange-600 hover:bg-orange-50"
                                       : "text-green-600 hover:bg-green-50"
                                   }`}
                                 >
-                                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border mr-2 ${
-                                    account.status === "active"
-                                      ? "bg-orange-50 text-orange-700 border-orange-200"
-                                      : "bg-green-50 text-green-700 border-green-200"
-                                  }`}>
-                                    {account.status === "active" ? "Deactivate" : "Activate"}
-                                  </span>
+                                  {account.status === "active" ? (
+                                    <>
+                                      <X className="w-4 h-4 mr-2" />
+                                      Deactivate
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Check className="w-4 h-4 mr-2" />
+                                      Activate
+                                    </>
+                                  )}
                                 </button>
                               )}
                               {canEdit(account) && "permissions" in account && (
                                 <button
-                                  onClick={() => setEditingAdmin(account)}
+                                  onClick={() => {
+                                    // Populate form with current admin data
+                                    setFormData({
+                                      firstName: account.firstName,
+                                      lastName: account.lastName,
+                                      email: account.email,
+                                      phone: account.phone,
+                                      role: account.role,
+                                      status: account.status,
+                                      permissions: account.permissions,
+                                    });
+                                    setEditingAdmin(account);
+                                  }}
                                   className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                 >
                                   <Edit className="w-4 h-4 mr-2" /> Edit
@@ -592,7 +620,9 @@ const UserManagment: React.FC = () => {
                               )}
                               {canDelete(account as Admin) && "permissions" in account && (
                                 <button
-                                  onClick={() => setShowDeleteConfirm(account.id)}
+                                  onClick={() => {
+                                    setShowDeleteConfirm(account.id);
+                                  }}
                                   className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                                 >
                                   <Trash2 className="w-4 h-4 mr-2" /> Delete
@@ -783,7 +813,7 @@ const UserManagment: React.FC = () => {
         </div>
       )}
 
-      {/* Edit Admin Modal - would need to be implemented similar to Add Admin Modal */}
+      {/* Edit Admin Modal */}
       {editingAdmin && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
@@ -793,7 +823,7 @@ const UserManagment: React.FC = () => {
                   Edit Admin
                 </h3>
                 <button
-                  onClick={() => setEditingAdmin(null)}
+                  onClick={handleCloseEditModal}
                   className="p-2 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
                 >
                   <X className="w-5 h-5" />
@@ -846,10 +876,59 @@ const UserManagment: React.FC = () => {
                 </div>
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Phone Number
+                </label>
+                <input
+                  type="tel"
+                  required
+                  value={formData.phone}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phone: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Status
+                </label>
+                <select
+                  value={formData.status}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      status: e.target.value as "active" | "inactive",
+                    })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                >
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+
               <div className="flex space-x-3 pt-4">
                 <button
                   type="button"
-                  onClick={() => setEditingAdmin(null)}
+                  onClick={handleCloseEditModal}
                   className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   Cancel

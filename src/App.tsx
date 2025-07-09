@@ -18,8 +18,9 @@ import NotFoundPage from "./pages/NotFoundPage";
 import AdminManagementPage from "./pages/dashbaord/AdminManagementPage";
 import TransactionsPage from "./pages/dashbaord/TransactionsPage";
 import TransactionDetailsPage from "./pages/dashbaord/TransactionDetailsPage";
-// Import the more comprehensive ProtectedRoute component
 import ProtectedRoute from "./components/common/ProtectedRoute";
+import RequestPaymentPage from "./pages/dashbaord/requestPayment";
+import AnalyticsPage from "./pages/dashbaord/Analaytics";
 
 // Dashboard redirect component
 const DashboardRedirect: React.FC = () => {
@@ -83,6 +84,29 @@ function App() {
               </ProtectedRoute>
             }
           />
+             <Route
+            path="/dashboard/request"
+            element={
+              <ProtectedRoute
+                requiredRoles={["user"]}
+                requiredPermissions={["make_payments"]}
+              >
+                <RequestPaymentPage />
+              </ProtectedRoute>
+            }
+          />
+              <Route
+            path="/dashboard/analytics"
+            element={
+              <ProtectedRoute
+                requiredRoles={["user"]}
+          
+              >
+                <AnalyticsPage />
+              </ProtectedRoute>
+            }
+          />
+
 
           {/* Admin Dashboard Routes */}
           <Route

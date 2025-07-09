@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
-import { FiChevronRight, FiChevronLeft, FiCheck, FiPhone, FiMail, FiMapPin } from "react-icons/fi";
+import { FiChevronRight, FiChevronLeft, FiPhone, FiMail, FiMapPin } from "react-icons/fi";
 
 const LandingPage= () => {
   const navigate = useNavigate();
@@ -133,17 +133,6 @@ const LandingPage= () => {
     { number: "15+", label: "Partner Banks" },
   ];
 
-  // Ethiopian businesses using Chapa
-  const clients = [
-    { name: "Desie Ecommerce", logo: "/client-logos/desie.png" },
-    { name: "Amazone Acha", logo: "/client-logos/amazone-acha.png" },
-    { name: "Tena Pharmacy", logo: "/client-logos/tena.png" },
-    { name: "Zemen Digital", logo: "/client-logos/zemen.png" },
-    { name: "Arat Kilo Mart", logo: "/client-logos/aratkilo.png" },
-    { name: "Gobez Travel", logo: "/client-logos/gobez.png" },
-    { name: "Henok Insurance", logo: "/client-logos/henok.png" },
-    { name: "Semayehu Supermarket", logo: "/client-logos/semayehu.png" },
-  ];
 
   const faqs = [
     {
@@ -182,56 +171,6 @@ const LandingPage= () => {
     {name:"Wegagen", icon: "/wegagen_bank.webp" },
   ];
 
-  const integrations = [
-    { name: "Shopify", icon: "/integration-icons/shopify.png" },
-    { name: "WooCommerce", icon: "/integration-icons/woocommerce.png" },
-    { name: "Magento", icon: "/integration-icons/magento.png" },
-    { name: "React", icon: "/integration-icons/react.png" },
-    { name: "WordPress", icon: "/integration-icons/wordpress.png" },
-    { name: "Wix", icon: "/integration-icons/wix.png" },
-  ];
-
-  const pricingPlans = [
-    {
-      name: "Starter",
-      price: "Free",
-      features: [
-        "Up to 100,000 Birr monthly transaction",
-        "3.5% + 2 Birr per transaction",
-        "Basic dashboard access",
-        "Basic reports",
-        "Email support",
-      ],
-      popular: false,
-    },
-    {
-      name: "Business",
-      price: "1,500 Birr / month",
-      features: [
-        "Up to 500,000 Birr monthly transaction",
-        "2.7% + 2 Birr per transaction",
-        "Full dashboard access",
-        "Advanced reporting and analytics",
-        "Customer support team",
-        "Custom receipt templates",
-      ],
-      popular: true,
-    },
-    {
-      name: "Enterprise",
-      price: "Custom pricing",
-      features: [
-        "Unlimited monthly transaction",
-        "Custom commission rates",
-        "Dedicated account manager",
-        "API development support",
-        "24/7 support",
-        "White-label payment platform co-designed with us",
-      ],
-      popular: false,
-    },
-  ];
-
   const howItWorks = [
     {
       title: "Sign Up",
@@ -260,27 +199,7 @@ const LandingPage= () => {
     },
   ];
   
-  // News highlights about Ethiopia's digital economy
-  const news = [
-    {
-      title: "Ethiopia's Digital Payments Grow by 35%",
-      excerpt: "A recent National Bank of Ethiopia report shows digital payment adoption has increased by 35% in the first half of 2025...",
-      date: "July 1, 2025",
-      image: "/news/digital-payments-growth.jpg",
-    },
-    {
-      title: "Chapa Announces $5M International Investment for Ethiopian SMEs",
-      excerpt: "Payment technology firm Chapa has announced a $5 million strategic investment from Aspen Venture Capital...",
-      date: "June 20, 2025",
-      image: "/news/investment-announcement.jpg",
-    },
-    {
-      title: "Chapa Partners with TeleBirr",
-      excerpt: "Two Ethiopian payment providers, Chapa and TeleBirr, have announced a new strategic partnership to expand digital payment adoption...",
-      date: "May 15, 2025",
-      image: "/news/chapa-telebirr.jpg",
-    },
-  ];
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">

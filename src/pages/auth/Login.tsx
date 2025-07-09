@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -6,7 +6,7 @@ import { z } from "zod";
 import { useAuth } from "../../hooks/useAuth";
 import { toastService } from "../../services/toastService";
 
-// Validation schema
+
 const loginSchema = z.object({
   email: z
     .string()
@@ -17,7 +17,7 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
-const Login: React.FC = () => {
+const Login= () => {
   const navigate = useNavigate();
   const { login, isLoading, error, clearError, isAuthenticated } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
@@ -35,7 +35,7 @@ const Login: React.FC = () => {
   useEffect(() => {
     clearError();
 
-    // Redirect if already authenticated
+  
     if (isAuthenticated) {
       navigate("/dashboard");
     }
@@ -47,7 +47,6 @@ const Login: React.FC = () => {
 
       await login(data.email, data.password);
 
-      // Dismiss the loading toast
       toastService.dismiss(loadingToast);
 
       // Show success toast

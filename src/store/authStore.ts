@@ -322,7 +322,6 @@ export const useAuthStore = create<AuthState>()(
             };
           },
           false,
-          "addTransaction"
         );
 
         // Simulate API call
@@ -354,8 +353,7 @@ export const useAuthStore = create<AuthState>()(
 
             return { user: updatedUser };
           },
-          false,
-          "updateTransactionStatus"
+          false
         );
       },
 
@@ -373,7 +371,6 @@ export const useAuthStore = create<AuthState>()(
             };
           },
           false,
-          "updateUserTransactions"
         );
       },
     }),

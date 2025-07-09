@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import TransactionHeader from "../../components/dashbaord/transaction/TransactionHeader";
 import TransactionFilters from "../../components/dashbaord/transaction/TransactionFilters";
@@ -10,10 +9,11 @@ import usePermissions from "../../hooks/usePermissions";
 import { useExport } from "../../hooks/useExport";
 import useTransaction from "../../hooks/useTransaction";
 import TransactionDetailsModal from "../../components/dashbaord/TransactionDetailsModal";
+import ConfirmationModal from "../../components/common/ConfirmationModal";
 import { toast } from "react-hot-toast";
+import type { Transaction } from "../../services/mockAPi";
 
 const TransactionsPage: React.FC = () => {
-  const navigate = useNavigate();
   const { user } = useAuth();
   const { hasPermission } = usePermissions();
   const { exportTransactionsToCSV } = useExport();
@@ -30,14 +30,17 @@ const TransactionsPage: React.FC = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [showFilters, setShowFilters] = useState(false);
-  const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchTransactions();
   }, [fetchTransactions]);
 
-  const hasManagePermission = hasPermission("transactions.manage");
+  const hasManagePermission = hasPermission("manage_transactions");
 
   const filteredTransactions = allTransactions
     .filter((transaction) => {
@@ -87,28 +90,43 @@ const TransactionsPage: React.FC = () => {
       );
     });
 
-  // Handle view transaction details
+
   const handleViewDetails = (id: string) => {
     const transaction = allTransactions.find((t) => t.id === id);
-    setSelectedTransaction(transaction);
-    setShowDetailsModal(true);
+    if (transaction) {
+      setSelectedTransaction(transaction);
+      setShowDetailsModal(true);
+    }
   };
 
-  // Handle transaction management (edit/delete)
-  const handleManageTransaction = (id: string, action: "edit" | "delete") => {
-    if (action === "edit") {
-      navigate(`/dashboard/transactions/${id}/edit`);
-    } else if (action === "delete") {
-      if (window.confirm("Are you sure you want to delete this transaction?")) {
-        deleteTransaction(id)
-          .then(() => {
-            toast.success("Transaction deleted successfully");
-          })
-          .catch((error) => {
-            toast.error(`Failed to delete transaction: ${error.message}`);
-          });
-      }
+  // Handle transaction management (delete only)
+  const handleManageTransaction = (id: string, action: "delete") => {
+    if (action === "delete") {
+      setTransactionToDelete(id);
+      setShowDeleteModal(true);
     }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!transactionToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      await deleteTransaction(transactionToDelete);
+      toast.success("Transaction deleted successfully");
+      setShowDeleteModal(false);
+      setTransactionToDelete(null);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred';
+      toast.error(`Failed to delete transaction: ${errorMessage}`);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+    setTransactionToDelete(null);
   };
 
   const handleExport = () => {
@@ -165,6 +183,18 @@ const TransactionsPage: React.FC = () => {
           onClose={() => setShowDetailsModal(false)}
         />
       )}
+
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        title="Delete Transaction"
+        message="Are you sure you want to delete this transaction? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+        isLoading={isDeleting}
+      />
     </DashboardLayout>
   );
 };

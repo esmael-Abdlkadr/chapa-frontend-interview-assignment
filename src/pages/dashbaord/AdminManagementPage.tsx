@@ -1,10 +1,8 @@
 import React from "react";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import UserManagment from "../../components/dashbaord/UserManagment";
-import { useAuth } from "../../hooks/useAuth";
 
 const AdminManagementPage: React.FC = () => {
-  const { user } = useAuth();
 
   return (
     <DashboardLayout>

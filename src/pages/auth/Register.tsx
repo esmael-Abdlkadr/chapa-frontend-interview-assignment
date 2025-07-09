@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -85,8 +85,8 @@ const Register = () => {
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
-        role: "User", // Always User for public registration
-        avatar: "👤", // Default User avatar
+        role: "user",
+        avatar: "👤", 
         password: data.password,
       });
     } catch (error) {

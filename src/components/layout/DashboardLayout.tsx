@@ -4,7 +4,6 @@ import {
   Home,
   Send,
   Download,
-  CreditCard,
   PieChart,
   Settings,
   Bell,
@@ -61,20 +60,15 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             key: "request",
             route: "/dashboard/request",
           },
+      
           {
-            name: "My Cards",
-            icon: CreditCard,
-            key: "cards",
-            route: "/dashboard/cards",
-          },
-          {
-            name: "Transactions",
+            name: "My transactions",
             icon: FileText,
             key: "transactions",
             route: "/dashboard/transactions",
           },
           {
-            name: "Analytics",
+            name: "My Analytics",
             icon: PieChart,
             key: "analytics",
             route: "/dashboard/analytics",
@@ -106,7 +100,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       };
     }
 
-    // Admin-specific navigation
+
     if (user.role === "admin") {
       return {
         mainNav: [
@@ -156,7 +150,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       };
     }
 
-    // SuperAdmin-specific navigation
+
     if (user.role === "superadmin") {
       return {
         mainNav: [
@@ -172,12 +166,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             key: "users",
             route: "/admin/manage-users",
           },
-          {
-            name: "Admin Management",
-            icon: Shield,
-            key: "admins",
-            route: "/super-admin/admins",
-          },
+       
           {
             name: "Transactions",
             icon: FileText,

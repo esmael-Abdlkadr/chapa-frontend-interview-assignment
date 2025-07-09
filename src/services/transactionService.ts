@@ -31,24 +31,7 @@ class TransactionService {
     return `chapa_user_${userId}`;
   }
 
-  private getUserFromStorage(userId: string) {
-    const userData = localStorage.getItem(this.getStorageKey(userId));
-    return userData ? JSON.parse(userData) : null;
-  }
 
-  private saveUserToStorage(user: any) {
-    localStorage.setItem(this.getStorageKey(user.id), JSON.stringify(user));
-
-    // Also update the main auth storage if this is the current user
-    const authData = localStorage.getItem("auth-storage");
-    if (authData) {
-      const parsedAuth = JSON.parse(authData);
-      if (parsedAuth.state?.user?.id === user.id) {
-        parsedAuth.state.user = user;
-        localStorage.setItem("auth-storage", JSON.stringify(parsedAuth));
-      }
-    }
-  }
 
   // Get transactions from localStorage
   private getStoredTransactions(userId: string): Transaction[] {
@@ -115,7 +98,7 @@ class TransactionService {
     }
   }
 
-  // Create a new transaction and store it
+
   async createTransaction(
     data: CreateTransactionData,
     userId?: string
@@ -123,15 +106,18 @@ class TransactionService {
     try {
       const newTransaction: Transaction = {
         id: this.generateId(),
-        ...data,
-        date: new Date().toISOString().split("T")[0],
-        time: new Date().toLocaleTimeString("en-US", {
-          hour12: false,
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
+        userId: userId || "user-1", // Default to user-1 if not provided
+        type: data.type,
+        amount: data.amount,
+        description: data.description,
+        date: new Date().toISOString(),
         status: "completed",
-        balance: await this.calculateNewBalance(data.type, data.amount),
+        category: data.category,
+        method: data.method,
+        recipient: data.recipient,
+        sender: data.sender,
+        reference: data.reference || this.generateReference(),
+        fee: data.fee || 0,
       };
 
       // Get existing stored transactions
@@ -140,7 +126,7 @@ class TransactionService {
 
       this.saveTransactions(storedTransactions, userId!);
 
-      // Simulate API call delay
+
       await this.delay(500);
 
       return newTransaction;
@@ -150,7 +136,7 @@ class TransactionService {
     }
   }
 
-  // Update an existing transaction
+
   async updateTransaction(
     data: UpdateTransactionData,
     userId?: string
@@ -173,7 +159,6 @@ class TransactionService {
       storedTransactions[transactionIndex] = updatedTransaction;
       this.saveTransactions(storedTransactions, userId!);
 
-      // Simulate API call delay
       await this.delay(500);
 
       return updatedTransaction;
@@ -197,7 +182,7 @@ class TransactionService {
 
       this.saveTransactions(filteredTransactions, userId!);
 
-      // Simulate API call delay
+  
       await this.delay(500);
 
       return true;
@@ -262,7 +247,6 @@ class TransactionService {
     filters: TransactionFilters
   ): Transaction[] {
     return transactions.filter((transaction) => {
-      // Filter by type
       if (filters.type && transaction.type !== filters.type) {
         return false;
       }
@@ -312,16 +296,8 @@ class TransactionService {
     return `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 
-  private async calculateNewBalance(
-    type: "income" | "expense",
-    amount: number
-  ): Promise<number> {
-    // In a real app, you would fetch the current balance from the API
-    // For now, we'll simulate a balance calculation
-    const currentBalance = 50000; // Mock current balance
-    return type === "income"
-      ? currentBalance + amount
-      : currentBalance - amount;
+  private generateReference(): string {
+    return `REF-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
   }
 
   private delay(ms: number): Promise<void> {
